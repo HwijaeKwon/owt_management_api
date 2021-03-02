@@ -51,13 +51,13 @@ class ManagementAPIInitializer(private val serviceRepository: ServiceRepository,
     }
 
     fun writeProperties(superServiceName: String, superServiceId: String, superServiceKey: String) {
-
+        println("ManagementAPIInitializer.writeProperties")
         var outputStream: OutputStream? = null
         try {
             val props = Properties()
-            props.setProperty("rest.superService.name", superServiceName)
-            props.setProperty("rest.superService.id", superServiceId)
-            props.setProperty("rest.superService.key", superServiceKey)
+            props.setProperty("superService.name", superServiceName)
+            props.setProperty("superService.id", superServiceId)
+            props.setProperty("superService.key", superServiceKey)
             outputStream = FileOutputStream(File(superServicePath))
             val propertiesPersister = DefaultPropertiesPersister()
             propertiesPersister.store(props, outputStream, "superService properties")

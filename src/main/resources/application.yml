@@ -1,7 +1,7 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://localhost:27018
+      uri: mongodb://localhost:12345
       database: test
       #username: test
       #password: test
