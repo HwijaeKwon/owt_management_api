@@ -3,8 +3,8 @@ spring:
     mongodb:
       uri: mongodb://localhost:27018
       database: test
-      username: test
-      password: test
+      #username: test
+      #password: test
 
 server:
   address: localhost

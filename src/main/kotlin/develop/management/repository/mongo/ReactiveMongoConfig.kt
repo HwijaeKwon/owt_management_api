@@ -20,15 +20,15 @@ class ReactiveMongoConfig(private val environment: Environment) {
 
     private val uri = environment.getProperty("spring.data.mongodb.uri", "mongodb://localhost:27017")
     private val databaseName = environment.getProperty("spring.data.mongodb.database", "test")
-    private val username = environment.getProperty("spring.data.mongodb.username", "test")
-    private val password = environment.getProperty("spring.data.mongodb.password", "test")
+    //private val username = environment.getProperty("spring.data.mongodb.username", "test")
+    //private val password = environment.getProperty("spring.data.mongodb.password", "test")
 
     @Bean
     fun reactiveMongoClient(): MongoClient {
         val connectionString = ConnectionString(uri)
         val settings = MongoClientSettings.builder()
             .applyConnectionString(connectionString)
-            .credential(MongoCredential.createCredential(username, databaseName, password.toCharArray()))
+            //.credential(MongoCredential.createCredential(username, databaseName, password.toCharArray()))
             .retryWrites(true)
             .readConcern(ReadConcern.MAJORITY)
             .writeConcern(WriteConcern.MAJORITY)
