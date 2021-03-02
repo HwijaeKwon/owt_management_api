@@ -11,12 +11,12 @@ import org.springframework.data.mongodb.core.mapping.Document
  * https://software.intel.com/sites/products/documentation/webrtc/restapi/ Services 참고
  */
 @Document(collection = "service")
-class ServiceData private constructor(@Indexed(unique = true)private val name: String,
+class Service private constructor(@Indexed(unique = true)private val name: String,
                                       private val key: String) {
     companion object {
-        fun create(serviceConfig: ServiceConfig): ServiceData {
+        fun create(serviceConfig: ServiceConfig): Service {
             val encryptedKey = Cipher.encrypt(serviceConfig.key)
-            return ServiceData(serviceConfig.name, encryptedKey).also { it.encrypted = true }
+            return Service(serviceConfig.name, encryptedKey).also { it.encrypted = true }
         }
     }
 
