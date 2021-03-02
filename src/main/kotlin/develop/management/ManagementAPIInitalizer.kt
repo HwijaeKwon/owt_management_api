@@ -51,7 +51,6 @@ class ManagementAPIInitializer(private val serviceRepository: ServiceRepository,
     }
 
     fun writeProperties(superServiceName: String, superServiceId: String, superServiceKey: String) {
-        println("ManagementAPIInitializer.writeProperties")
         var outputStream: OutputStream? = null
         try {
             val props = Properties()
