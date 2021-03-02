@@ -1,4 +1,4 @@
-package develop.management.develop
+package develop.management
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

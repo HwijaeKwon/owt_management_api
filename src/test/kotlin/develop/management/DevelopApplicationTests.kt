@@ -1,4 +1,4 @@
-package develop.management.develop
+package develop.management
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
