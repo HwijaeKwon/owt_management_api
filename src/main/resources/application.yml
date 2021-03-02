@@ -1,0 +1,16 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27018
+      database: test
+
+server:
+  address: localhost
+  port: 8080
+
+#mongodb retry
+mongodb:
+  retry:
+    times: 5
+    initialDelay: 100
+    maxDelay: 1000
