@@ -2,6 +2,7 @@ package develop.management.router
 
 import develop.management.auth.ServiceAuthenticator
 import develop.management.auth.ServiceAuthorizer
+import develop.management.handler.ParticipantHandler
 import develop.management.handler.RoomHandler
 import develop.management.handler.ServiceHandler
 import develop.management.handler.TokenHandler
@@ -28,6 +29,9 @@ class RouterConfig {
 
     @Autowired
     private lateinit var tokenHandler: TokenHandler
+
+    @Autowired
+    private lateinit var participantHandler: ParticipantHandler
 
     @Autowired
     private lateinit var serviceAuthenticator: ServiceAuthenticator
@@ -101,6 +105,31 @@ class RouterConfig {
         "/v1/rooms/{roomId}/tokens".nest {
             accept(MediaType.APPLICATION_JSON).nest {
                 POST("", tokenHandler::create)
+            }
+            filter(serviceAuthenticator::authenticate)
+            filter(roomValidator::validate)
+        }
+    }
+
+    /**
+     * participant 관련 요청을 처리하는 router function
+     */
+    @Bean
+    @RouterOperations(
+            RouterOperation(path = "/v1/rooms/{roomId}/participants/{participantId}", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = ParticipantHandler::class, beanMethod = "findOne"),
+            RouterOperation(path = "/v1/rooms/{roomId}/participants/{participantId}", method = [RequestMethod.PATCH], headers = ["Authorization"], beanClass = ParticipantHandler::class, beanMethod = "update"),
+            RouterOperation(path = "/v1/rooms/{roomId}/participants/{participantId}", method = [RequestMethod.DELETE], headers = ["Authorization"], beanClass = ParticipantHandler::class, beanMethod = "delete"),
+            RouterOperation(path = "/v1/rooms/{roomId}/participants", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = RoomHandler::class, beanMethod = "findAll"),
+    )
+    fun participantRouter(): RouterFunction<ServerResponse> = coRouter {
+        "/v1/rooms/{roomId}/participants".nest {
+            accept(MediaType.APPLICATION_JSON).nest {
+                "/{participantId}".nest {
+                    GET("", participantHandler::findOne)
+                    PATCH("", participantHandler::update)
+                    DELETE("", participantHandler::delete)
+                }
+                GET("", participantHandler::findAll)
             }
             filter(serviceAuthenticator::authenticate)
             filter(roomValidator::validate)
