@@ -20,7 +20,7 @@ import javax.annotation.PostConstruct
  * management api 초기 세팅을 수행하는 클래스
  */
 @Component
-class ManagementAPIInitializer(private val serviceRepository: ServiceRepository, private val keyRepository: KeyRepository) {
+class ManagementInitializer(private val serviceRepository: ServiceRepository, private val keyRepository: KeyRepository) {
 
     private val superServicePath = "src/main/resources/superService.info"
 

@@ -4,10 +4,7 @@ import develop.management.domain.document.Service
 import develop.management.domain.dto.ServiceConfig
 import develop.management.domain.dto.ServiceInfo
 import develop.management.service.ServiceService
-import develop.management.util.error.AppError
-import develop.management.util.error.BadRequestError
-import develop.management.util.error.ErrorBody
-import develop.management.util.error.NotFoundError
+import develop.management.util.error.*
 import develop.management.validator.ServiceConfigValidator
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -41,8 +38,8 @@ class ServiceHandler(private val serviceService: ServiceService) {
             requestBody = RequestBody(content = [Content(mediaType = "application/json", schema = Schema(implementation = ServiceConfig::class, required = true))]),
             responses = [
                 ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", schema = Schema(implementation = ServiceInfo::class))]),
-                ApiResponse(responseCode = "400", description = "Bad request error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorBody::class), examples = [ExampleObject(value = BadRequestError.example)])]),
-                ApiResponse(responseCode = "500", description = "App error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorBody::class), examples = [ExampleObject(value = AppError.example)])]),
+                ApiResponse(responseCode = "400", description = "Bad request error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = BadRequestError.example)])]),
+                ApiResponse(responseCode = "500", description = "App error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = AppError.example)])]),
             ]
     )
     suspend fun create(request: ServerRequest): ServerResponse {
@@ -84,7 +81,7 @@ class ServiceHandler(private val serviceService: ServiceService) {
             parameters = [Parameter(name = "serviceId", description = "Service id", required = true)],
             responses = [
                 ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", schema = Schema(implementation = ServiceInfo::class))]),
-                ApiResponse(responseCode = "404", description = "Not found", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorBody::class), examples = [ExampleObject(value = NotFoundError.exampleService)])]),
+                ApiResponse(responseCode = "404", description = "Not found", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = NotFoundError.exampleService)])]),
             ]
     )
     suspend fun findOne(request: ServerRequest): ServerResponse {
@@ -103,7 +100,7 @@ class ServiceHandler(private val serviceService: ServiceService) {
      */
     @Operation(
             operationId = "findAllService",
-            description = "find all service",
+            description = "find all services",
             responses = [
                 ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", array = ArraySchema(schema = Schema(implementation = ServiceInfo::class)))]),
             ]
@@ -120,8 +117,8 @@ class ServiceHandler(private val serviceService: ServiceService) {
             description = "Delete service",
             responses = [
                 ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "text_plain", schema = Schema(implementation = String::class), examples = [ExampleObject(value = "Service deleted")])]),
-                ApiResponse(responseCode = "404", description = "Bad request error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorBody::class), examples = [ExampleObject(value = BadRequestError.example)])]),
-                ApiResponse(responseCode = "500", description = "App error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorBody::class), examples = [ExampleObject(value = AppError.example)])]),
+                ApiResponse(responseCode = "404", description = "Not found", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = BadRequestError.example)])]),
+                ApiResponse(responseCode = "500", description = "App error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = AppError.example)])]),
             ]
     )
     suspend fun delete(request: ServerRequest): ServerResponse {

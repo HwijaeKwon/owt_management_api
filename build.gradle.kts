@@ -26,9 +26,9 @@ dependencies {
 	//gson
 	implementation("com.google.code.gson:gson:2.8.6")
 	//springdoc webflux
-	implementation("org.springdoc:springdoc-openapi-webflux-core:1.4.2")
+	implementation("org.springdoc:springdoc-openapi-webflux-ui:1.5.2")
 	//springdoc openapi kotlin
-	implementation("org.springdoc:springdoc-openapi-kotlin:1.3.4")
+	implementation("org.springdoc:springdoc-openapi-kotlin:1.5.4")
 	//json object
 	implementation("com.vaadin.external.google:android-json:0.0.20131108.vaadin1")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

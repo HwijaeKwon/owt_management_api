@@ -1,6 +1,6 @@
 package develop.management.auth
 
-import develop.management.ManagementAPIInitializer
+import develop.management.ManagementInitializer
 import develop.management.util.error.AppError
 import develop.management.util.error.AuthorizationError
 import org.springframework.context.annotation.DependsOn
@@ -18,8 +18,8 @@ import org.springframework.web.reactive.function.server.bodyValueAndAwait
  */
 
 @Component
-@DependsOn(value = ["restServerInitializer"])
-class ServiceAuthorizer(private val initializer: ManagementAPIInitializer) {
+@DependsOn(value = ["managementInitializer"])
+class ServiceAuthorizer(private val initializer: ManagementInitializer) {
 
     /**
      * service를 대상으로 한 요청일 경우 이에 대한 권한을 확인한다
