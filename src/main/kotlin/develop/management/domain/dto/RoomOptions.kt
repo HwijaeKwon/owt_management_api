@@ -27,7 +27,7 @@ sealed class RoomOptions(
  * name : required
  */
 class CreateOptions(
-    @Schema(description = "Name of the room", nullable = false, required = false, implementation = RoomConfig::class)
+    @Schema(description = "Name of the room", nullable = false, required = false)
     override val name: String = "",
     @Schema(description = "Participant limit of the room", nullable = false, required = false)
     override val participantLimit: Number = RoomConfig.DEFAULT_CONFIG_PARTICIPANTLIMIT.get() as Number,

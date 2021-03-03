@@ -14,7 +14,7 @@ data class RoomInfo(
     val id: String,
     @Schema(description = "Name of the room", nullable = false, required = true, example = "name")
     val name: String,
-    @Schema(description = "Participant limit of the room", nullable = false, required = false, implementation = RoomConfig::class)
+    @Schema(description = "Participant limit of the room", nullable = false, required = false, example = "10")
     val participantLimit: Number,
     @Schema(description = "Input limit of the room", nullable = false, required = true, minimum = "-1", example = "10")
     val inputLimit: Number,
