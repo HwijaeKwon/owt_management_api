@@ -4,6 +4,7 @@ import develop.management.auth.ServiceAuthenticator
 import develop.management.auth.ServiceAuthorizer
 import develop.management.handler.RoomHandler
 import develop.management.handler.ServiceHandler
+import develop.management.handler.TokenHandler
 import develop.management.validator.RoomValidator
 import org.springdoc.core.annotations.RouterOperation
 import org.springdoc.core.annotations.RouterOperations
@@ -26,6 +27,9 @@ class RouterConfig {
     private lateinit var roomHandler: RoomHandler
 
     @Autowired
+    private lateinit var tokenHandler: TokenHandler
+
+    @Autowired
     private lateinit var serviceAuthenticator: ServiceAuthenticator
 
     @Autowired
@@ -33,6 +37,31 @@ class RouterConfig {
 
     @Autowired
     private lateinit var roomValidator: RoomValidator
+
+    /**
+     * service 관련 요청을 처리하는 router functions
+     */
+    @Bean
+    @RouterOperations(
+            RouterOperation(path = "/services/{serviceId}", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = ServiceHandler::class, beanMethod = "findOne"),
+            RouterOperation(path = "/services/{serviceId}", method = [RequestMethod.DELETE], headers = ["Authorization"], beanClass = ServiceHandler::class, beanMethod = "delete"),
+            RouterOperation(path = "/services", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = ServiceHandler::class, beanMethod = "findAll"),
+            RouterOperation(path = "/services", method = [RequestMethod.POST], headers = ["Authorization"], beanClass = ServiceHandler::class, beanMethod = "create"),
+    )
+    fun serviceRouter(): RouterFunction<ServerResponse> = coRouter {
+        "/services".nest {
+            accept(MediaType.APPLICATION_JSON).nest {
+                "{serviceId}".nest {
+                    GET("", serviceHandler::findOne)
+                    DELETE("", serviceHandler::delete)
+                }
+                GET("", serviceHandler::findAll)
+                POST("", serviceHandler::create)
+            }
+            filter(serviceAuthenticator::authenticate)
+            filter(serviceAuthorizer::serviceAuthorize)
+        }
+    }
 
     /**
      * room 관련 요청을 처리하는 router functions
@@ -62,27 +91,19 @@ class RouterConfig {
     }
 
     /**
-     * service 관련 요청을 처리하는 router functions
+     * token 관련 요청을 처리하는 router function
      */
     @Bean
     @RouterOperations(
-            RouterOperation(path = "/services/{serviceId}", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = ServiceHandler::class, beanMethod = "findOne"),
-            RouterOperation(path = "/services/{serviceId}", method = [RequestMethod.DELETE], headers = ["Authorization"], beanClass = ServiceHandler::class, beanMethod = "delete"),
-            RouterOperation(path = "/services", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = ServiceHandler::class, beanMethod = "findAll"),
-            RouterOperation(path = "/services", method = [RequestMethod.POST], headers = ["Authorization"], beanClass = ServiceHandler::class, beanMethod = "create"),
+            RouterOperation(path = "/v1/rooms/{roomId}/tokens", method = [RequestMethod.POST], headers = ["Authorization"], beanClass = TokenHandler::class, beanMethod = "create"),
     )
-    fun serviceRouter(): RouterFunction<ServerResponse> = coRouter {
-        "/services".nest {
+    fun tokenRouter(): RouterFunction<ServerResponse> = coRouter {
+        "/v1/rooms/{roomId}/tokens".nest {
             accept(MediaType.APPLICATION_JSON).nest {
-                "{serviceId}".nest {
-                    GET("", serviceHandler::findOne)
-                    DELETE("", serviceHandler::delete)
-                }
-                GET("", serviceHandler::findAll)
-                POST("", serviceHandler::create)
+                POST("", tokenHandler::create)
             }
             filter(serviceAuthenticator::authenticate)
-            filter(serviceAuthorizer::serviceAuthorize)
+            filter(roomValidator::validate)
         }
     }
 }
