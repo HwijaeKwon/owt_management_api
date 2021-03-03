@@ -119,7 +119,7 @@ class RouterConfig {
             RouterOperation(path = "/v1/rooms/{roomId}/participants/{participantId}", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = ParticipantHandler::class, beanMethod = "findOne"),
             RouterOperation(path = "/v1/rooms/{roomId}/participants/{participantId}", method = [RequestMethod.PATCH], headers = ["Authorization"], beanClass = ParticipantHandler::class, beanMethod = "update"),
             RouterOperation(path = "/v1/rooms/{roomId}/participants/{participantId}", method = [RequestMethod.DELETE], headers = ["Authorization"], beanClass = ParticipantHandler::class, beanMethod = "delete"),
-            RouterOperation(path = "/v1/rooms/{roomId}/participants", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = RoomHandler::class, beanMethod = "findAll"),
+            RouterOperation(path = "/v1/rooms/{roomId}/participants", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = StreamHandler::class, beanMethod = "findAll"),
     )
     fun participantRouter(): RouterFunction<ServerResponse> = coRouter {
         "/v1/rooms/{roomId}/participants".nest {
@@ -144,7 +144,7 @@ class RouterConfig {
             RouterOperation(path = "/v1/rooms/{roomId}/streams/{streamId}", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = StreamHandler::class, beanMethod = "findOne"),
             RouterOperation(path = "/v1/rooms/{roomId}/streams/{streamId}", method = [RequestMethod.PATCH], headers = ["Authorization"], beanClass = StreamHandler::class, beanMethod = "update"),
             RouterOperation(path = "/v1/rooms/{roomId}/streams/{streamId}", method = [RequestMethod.DELETE], headers = ["Authorization"], beanClass = StreamHandler::class, beanMethod = "delete"),
-            RouterOperation(path = "/v1/rooms/{roomId}/streams", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = RoomHandler::class, beanMethod = "findAll"),
+            RouterOperation(path = "/v1/rooms/{roomId}/streams", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = StreamHandler::class, beanMethod = "findAll"),
     )
     fun streamRouter(): RouterFunction<ServerResponse> = coRouter {
         "/v1/rooms/{roomId}/streams".nest {
