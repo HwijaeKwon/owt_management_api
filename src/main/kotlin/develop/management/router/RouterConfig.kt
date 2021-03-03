@@ -2,10 +2,7 @@ package develop.management.router
 
 import develop.management.auth.ServiceAuthenticator
 import develop.management.auth.ServiceAuthorizer
-import develop.management.handler.ParticipantHandler
-import develop.management.handler.RoomHandler
-import develop.management.handler.ServiceHandler
-import develop.management.handler.TokenHandler
+import develop.management.handler.*
 import develop.management.validator.RoomValidator
 import org.springdoc.core.annotations.RouterOperation
 import org.springdoc.core.annotations.RouterOperations
@@ -32,6 +29,9 @@ class RouterConfig {
 
     @Autowired
     private lateinit var participantHandler: ParticipantHandler
+
+    @Autowired
+    private lateinit var streamHandler: StreamHandler
 
     @Autowired
     private lateinit var serviceAuthenticator: ServiceAuthenticator
@@ -130,6 +130,31 @@ class RouterConfig {
                     DELETE("", participantHandler::delete)
                 }
                 GET("", participantHandler::findAll)
+            }
+            filter(serviceAuthenticator::authenticate)
+            filter(roomValidator::validate)
+        }
+    }
+
+    /**
+     * stream 관련 요청을 처리하는 router functions
+     */
+    @Bean
+    @RouterOperations(
+            RouterOperation(path = "/v1/rooms/{roomId}/streams/{streamId}", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = StreamHandler::class, beanMethod = "findOne"),
+            RouterOperation(path = "/v1/rooms/{roomId}/streams/{streamId}", method = [RequestMethod.PATCH], headers = ["Authorization"], beanClass = StreamHandler::class, beanMethod = "update"),
+            RouterOperation(path = "/v1/rooms/{roomId}/streams/{streamId}", method = [RequestMethod.DELETE], headers = ["Authorization"], beanClass = StreamHandler::class, beanMethod = "delete"),
+            RouterOperation(path = "/v1/rooms/{roomId}/streams", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = RoomHandler::class, beanMethod = "findAll"),
+    )
+    fun streamRouter(): RouterFunction<ServerResponse> = coRouter {
+        "/v1/rooms/{roomId}/streams".nest {
+            accept(MediaType.APPLICATION_JSON).nest {
+                "/{streamId}".nest {
+                    GET("", streamHandler::findOne)
+                    PATCH("", streamHandler::update)
+                    DELETE("", streamHandler::delete)
+                }
+                GET("", streamHandler::findAll)
             }
             filter(serviceAuthenticator::authenticate)
             filter(roomValidator::validate)
