@@ -22,11 +22,11 @@ data class StreamInfo(
 
         init {
                 //Any type의 video를 적절한 object로 변환한다
-                if(this.info !is MixedInfo) {
-                        val mixedInfo = Gson().fromJson(this.info.toString(), MixedInfo::class.java)
+                if(this.info is MixedInfo) {
+                        val mixedInfo = this.info as MixedInfo
                         this.info = mixedInfo
                 } else {
-                        val forwardInfo = Gson().fromJson(this.info.toString(), ForwardInfo::class.java)
+                        val forwardInfo = this.info as ForwardInfo
                         this.info = forwardInfo
                 }
         }

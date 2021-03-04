@@ -19,7 +19,7 @@ class View(
     init {
         //Any type의 video를 적절한 object로 변환한다
         if(this.video is ViewVideo && this.video != false) {
-            val viewVideo = Gson().fromJson(this.video.toString(), ViewVideo::class.java)
+            val viewVideo = this.video as ViewVideo
             this.video = viewVideo
         }
     }

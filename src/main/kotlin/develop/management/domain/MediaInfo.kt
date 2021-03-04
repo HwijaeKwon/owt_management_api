@@ -12,13 +12,13 @@ data class MediaInfo(
     init {
         //Any type의 audio를 적절한 object로 변환한다
         if(this.audio is AudioInfo && this.audio != false) {
-            val audioInfo = Gson().fromJson(this.audio.toString(), AudioInfo::class.java)
+            val audioInfo = this.audio as AudioInfo
             this.audio= audioInfo
         }
 
         //Any type의 video를 적절한 object로 변환한다
         if(this.video is VideoInfo && this.video != false) {
-            val videoInfo = Gson().fromJson(this.video.toString(), VideoInfo::class.java)
+            val videoInfo = this.video as VideoInfo
             this.video = videoInfo
         }
     }
