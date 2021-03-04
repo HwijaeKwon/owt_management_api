@@ -20,14 +20,4 @@ data class StreamInfo(
         @Schema(description = "Stream information (\"MixedInfo\" or \"ForwardInfo\"", nullable = false)
         var info: Any) {
 
-        init {
-                //Any type의 video를 적절한 object로 변환한다
-                if(this.info is MixedInfo) {
-                        val mixedInfo = this.info as MixedInfo
-                        this.info = mixedInfo
-                } else {
-                        val forwardInfo = this.info as ForwardInfo
-                        this.info = forwardInfo
-                }
-        }
 }

@@ -15,13 +15,5 @@ class View(
     val audio: ViewAudio,
     @Schema(description = "Video setting for the view (ViewVideo | false)", nullable = false, required = true, implementation = ViewVideo::class)
     var video: Any) {
-
-    init {
-        //Any type의 video를 적절한 object로 변환한다
-        if(this.video is ViewVideo && this.video != false) {
-            val viewVideo = this.video as ViewVideo
-            this.video = viewVideo
-        }
-    }
 }
 

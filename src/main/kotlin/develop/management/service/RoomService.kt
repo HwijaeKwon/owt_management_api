@@ -1,5 +1,6 @@
 package develop.management.service
 
+import com.google.gson.Gson
 import com.mongodb.client.result.DeleteResult
 import develop.management.domain.ViewVideo
 import develop.management.domain.document.Room
@@ -41,9 +42,16 @@ class RoomService(private val serviceRepository: ServiceRepository,
             view -> room.getMediaOut().audio.any {
                 it.codec == view.audio.format.codec && it.sampleRate == view.audio.format.sampleRate && it.channelNum == view.audio.format.channelNum
             }.and(room.getMediaOut().video.format.any {
-                (view.video == false) || (it.codec == (view.video as ViewVideo).format.codec && it.profile == (view.video as ViewVideo).format.profile)
+                (view.video == false) || (it.codec == convertToViewVideo(view.video).format.codec && it.profile == convertToViewVideo(view.video).format.profile)
             })
         }
+    }
+
+    fun convertToViewVideo(viewVideo: Any): ViewVideo {
+        if(viewVideo !is ViewVideo) {
+            return Gson().fromJson(viewVideo.toString(), ViewVideo::class.java)
+        }
+        return viewVideo
     }
 
     /**

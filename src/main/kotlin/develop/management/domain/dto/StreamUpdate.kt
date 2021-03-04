@@ -14,14 +14,6 @@ data class StreamUpdate(
         val path: String,
         @Schema(description = "Value of updates (MixUpdate, StatusUpdate, RegionUpdate, LayoutUpdate", nullable = false, required = true)
         var value: Any) {
-
-    init {
-        //Any type의 value를 적절한 object로 변환한다
-        if(this.op == "replace" && this.path == "/info/layout") {
-            val streamRegionList = this.value as List<StreamRegion>
-            this.value = streamRegionList
-        }
-    }
 }
 
 data class StreamRegion(
