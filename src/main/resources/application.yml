@@ -5,6 +5,17 @@ spring:
       database: owtdb
       username: test
       password: test1234
+  cloud:
+    function:
+      definition: direct
+    stream:
+      bindings:
+        direct-out-0:
+          destination: owtRpc
+  rabbitmq:
+    addresses: 192.168.9.14:30000
+    username: test
+    password: test1234
 
 server:
   address: localhost
