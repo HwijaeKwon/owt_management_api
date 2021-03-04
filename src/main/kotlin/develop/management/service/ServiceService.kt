@@ -18,14 +18,17 @@ class ServiceService(private val serviceRepository: ServiceRepository, private v
      * 새로운 service를 db에 생성한다
      */
     suspend fun create(service: develop.management.domain.document.Service): develop.management.domain.document.Service {
-        return retryOperation.execute {
+       /* return retryOperation.execute {
             println("ServiceDataService.create")
             transactionalOperator.executeAndAwait {
                 if(serviceRepository.existsByName(service.getName())) throw IllegalStateException("Service already exists")
                 println("save service!!!")
                 serviceRepository.save(service)
             }!!
-        }
+        }*/
+        if(serviceRepository.existsByName(service.getName())) throw IllegalStateException("Service already exists")
+        println("save service!!!")
+        return serviceRepository.save(service)
     }
 
     /**
@@ -47,12 +50,13 @@ class ServiceService(private val serviceRepository: ServiceRepository, private v
      * 특정 service를 제거한다
      */
     suspend fun delete(serviceId: String): DeleteResult {
-        return retryOperation.execute {
+        /*return retryOperation.execute {
             transactionalOperator.executeAndAwait {
-                //service를 삭제하고 service에 포함된 방을 전부 삭제한다
                 val service = serviceRepository.findById(serviceId)?: throw IllegalArgumentException("Service not found")
                 serviceRepository.deleteById(service.getId())
             }!!
-        }
+        }*/
+        val service = serviceRepository.findById(serviceId)?: throw IllegalArgumentException("Service not found")
+        return serviceRepository.deleteById(service.getId())
     }
 }

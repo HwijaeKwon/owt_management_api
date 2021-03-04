@@ -48,7 +48,7 @@ class TokenService(private val tokenRepository: TokenRepository,
     suspend fun create(serviceId: String, roomId: String, tokenConfig: TokenConfig): String {
         val token = Token.createToken(tokenConfig)
 
-        val savedToken = retryOperation.execute {
+        /*val savedToken = retryOperation.execute {
             transactionalOperator.executeAndAwait {
                 val room = roomRepository.findById(roomId)?: throw IllegalArgumentException("Room not found")
                 if(room.getRoles().none { it.role == token.getRole() }) throw Exception("Role is not valid")
@@ -60,7 +60,17 @@ class TokenService(private val tokenRepository: TokenRepository,
                 //token repository error를 고려해야 한다 -> token은 null이 될 수 없다
                 tokenRepository.save(token)
             }!!
-        }
+        }*/
+
+        val room = roomRepository.findById(roomId)?: throw IllegalArgumentException("Room not found")
+        if(room.getRoles().none { it.role == token.getRole() }) throw Exception("Role is not valid")
+        val code = Random.nextLong(0, 100000000000).toString() + ""
+        //Todo: rpc를 통해 portal에 host를 달라고 요청해야한다
+        val secure = true
+        val host = ""
+        token.updateToken(room.getId(), serviceId, code, secure, host)
+        //token repository error를 고려해야 한다 -> token은 null이 될 수 없다
+        val savedToken = tokenRepository.save(token)
 
         return tokenToString(savedToken)
     }
