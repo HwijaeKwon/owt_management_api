@@ -20,8 +20,8 @@ data class StreamUpdate(
 
     init {
         //Any type의 value를 적절한 object로 변환한다
-        if(this.value is List<*> && this.value != String) {
-            val streamRegionList = Gson().fromJson(this.value.toString(), List::class.java)
+        if(this.op == "replace" && this.path == "/info/layout") {
+            val streamRegionList = this.value as List<StreamRegion>
             this.value = streamRegionList
         }
     }

@@ -1,11 +1,14 @@
 package develop.management.handler
 
+import develop.management.domain.dto.RoomConfig
 import develop.management.domain.dto.StreamInfo
 import develop.management.domain.dto.StreamUpdate
+import develop.management.domain.dto.UpdateOptions
 import develop.management.service.StreamService
 import develop.management.util.error.BadRequestError
 import develop.management.util.error.ErrorFoam
 import develop.management.util.error.NotFoundError
+import develop.management.validator.StreamUpdateValidator
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.ArraySchema
@@ -17,6 +20,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.json.JSONObject
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
+import org.springframework.validation.BeanPropertyBindingResult
 import org.springframework.web.reactive.function.server.*
 import org.springframework.web.reactive.function.server.ServerResponse.ok
 
@@ -66,7 +70,7 @@ class StreamHandler(private val streamService: StreamService) {
     )
     suspend fun findAll(request: ServerRequest): ServerResponse {
         val roomId = request.pathVariable("roomId")
-        val streamList: List<String> = streamService.findAll(roomId)
+        val streamList: List<StreamInfo> = streamService.findAll(roomId)
         //Todo: error exception 처리하기
         return ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(streamList)
     }
@@ -86,16 +90,27 @@ class StreamHandler(private val streamService: StreamService) {
             ]
     )
     suspend fun update(request: ServerRequest): ServerResponse {
+        val validator = StreamUpdateValidator()
+
         val roomId = request.pathVariable("roomId")
         val streamId = request.pathVariable("streamId")
-        val updateInfo: JSONObject? = request.awaitBodyOrNull<String>()?.let { JSONObject(it) }
-        if(updateInfo == null) {
-            val error = BadRequestError("Bad request : incorrect body")
-            ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
+
+        val streamUpdate = try { request.awaitBodyOrNull<StreamUpdate>() } catch (e: Exception) { null } ?: run {
+            val error = BadRequestError("Invalid request body: Request body is not valid.")
+            return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
+        }
+
+        val errors = BeanPropertyBindingResult(streamUpdate, RoomConfig::class.java.name)
+        validator.validate(streamUpdate, errors)
+        if(errors.allErrors.isNotEmpty()) {
+            var message = "Invalid request body: "
+            errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
+            val error = BadRequestError(message)
+            return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
         //Todo: error exception 처리하기
-        return streamService.update(roomId, streamId, updateInfo!!)?.let {
+        return streamService.update(roomId, streamId, streamUpdate)?.let {
             ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(it)
         }?: run {
             val error = NotFoundError("Stream not found")

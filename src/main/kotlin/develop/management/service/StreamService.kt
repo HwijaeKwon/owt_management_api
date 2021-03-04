@@ -1,6 +1,8 @@
 package develop.management.service
 
-import develop.management.repository.mongo.MongoRoomRepository
+import com.google.gson.Gson
+import develop.management.domain.dto.StreamInfo
+import develop.management.domain.dto.StreamUpdate
 import kotlinx.coroutines.reactive.awaitLast
 import kotlinx.coroutines.reactive.awaitSingleOrNull
 import org.json.JSONException
@@ -14,7 +16,7 @@ import reactor.kotlin.core.publisher.toMono
  * stream 관련 비즈니스 로직을 수행하는 서비스
  */
 @Service
-class StreamService(private val roomRepository: MongoRoomRepository) {
+class StreamService {
 
     /**
      * v1.1 stream을 v1 stream으로 전환하는 함수
@@ -36,7 +38,7 @@ class StreamService(private val roomRepository: MongoRoomRepository) {
     /**
      * 특정 room에 속한 특정 stream을 반환한다
      */
-    suspend fun findOne(roomId: String, streamId: String): String? {
+    suspend fun findOne(roomId: String, streamId: String): StreamInfo? {
         //Todo: rabbitmq로 conference agent에게 stream 목록을 받아와야함
         //rabbitmq에서 flux로 넘겨줄 경우 (test용 json)
         val testStr = """
@@ -50,6 +52,7 @@ class StreamService(private val roomRepository: MongoRoomRepository) {
         //Todo : rabbitmq에서 데이터를 받다가 실패한 경우를 exception error로 catch할 수 있어야 한다
         return streamFluxList.filter { streamJson -> streamJson.getString("id") == streamId }
                 .map { streamJson -> convertToV1Stream(streamJson.toString()) }
+                .map { streamString -> Gson().fromJson(streamString, StreamInfo::class.java)}
                 .awaitSingleOrNull()
     }
 
@@ -58,7 +61,7 @@ class StreamService(private val roomRepository: MongoRoomRepository) {
      * Flow를 반환하려고 하였으나, response type이 List여야하므로 List를 반환하도록 구현하였다
      * Flow로 반환한다면 handler에서 list를 만들어줘야 한다
      */
-    suspend fun findAll(roomId: String): List<String> {
+    suspend fun findAll(roomId: String): List<StreamInfo> {
         //Todo: rabbitmq로 conference agent에게 stream 목록을 받아와야함
         //rabbitmq에서 flux로 넘겨줄 경우 (test용 json)
         val testStr = """
@@ -77,12 +80,13 @@ class StreamService(private val roomRepository: MongoRoomRepository) {
         //Todo : rabbitmq에서 데이터를 받다가 실패한 경우를 exception error로 catch할 수 있어야 한다
         val streamJson: List<JSONObject> = streamFluxList.collectList().awaitLast()
         return streamJson.map { jsonObject -> convertToV1Stream(jsonObject.toString()) }
+                .map { streamString -> Gson().fromJson(streamString, StreamInfo::class.java) }
     }
 
     /**
      * 특정 room에 속한 특정 stream을 updateInfo를 반영하여 갱신한다
      */
-    suspend fun update(roomId: String, streamId: String, updateInfo: JSONObject):String? {
+    suspend fun update(roomId: String, streamId: String, updateInfo: StreamUpdate):StreamInfo? {
         //Todo: updateInfo를 validation해야 한다
         //Todo: rabbitmq에 stream update를 요청한다
         //rabbitmq에서 결과를 flux로 넘겨줄 경우 (test용 json)
@@ -96,6 +100,7 @@ class StreamService(private val roomRepository: MongoRoomRepository) {
         //Todo : rabbitmq에서 데이터를 받다가 실패한 경우를 exception error로 catch할 수 있어야 한다
         return stream
                 .map{ jsonObject -> convertToV1Stream(jsonObject.toString()) }
+                .map { streamString -> Gson().fromJson(streamString, StreamInfo::class.java) }
                 .awaitSingleOrNull()
     }
 
