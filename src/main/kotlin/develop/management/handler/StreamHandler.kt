@@ -1,5 +1,7 @@
 package develop.management.handler
 
+import develop.management.domain.dto.StreamInfo
+import develop.management.domain.dto.StreamUpdate
 import develop.management.service.StreamService
 import develop.management.util.error.BadRequestError
 import develop.management.util.error.ErrorFoam
@@ -35,7 +37,7 @@ class StreamHandler(private val streamService: StreamService) {
             description = "find one stream",
             parameters = [Parameter(name = "roomId", description = "Room id", required = true), Parameter(name = "participantId", description = "Participant id", required = true)],
             responses = [
-                ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", schema = Schema(implementation = String::class))]),
+                ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", schema = Schema(implementation = StreamInfo::class))]),
                 ApiResponse(responseCode = "404", description = "Not found", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = NotFoundError.exampleService)])]),
             ]
     )
@@ -59,7 +61,7 @@ class StreamHandler(private val streamService: StreamService) {
             description = "find all streams",
             parameters = [Parameter(name = "roomId", description = "Room id", required = true)],
             responses = [
-                ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", array = ArraySchema(schema = Schema(implementation = String::class)))]),
+                ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", array = ArraySchema(schema = Schema(implementation = StreamInfo::class)))]),
             ]
     )
     suspend fun findAll(request: ServerRequest): ServerResponse {
@@ -76,9 +78,9 @@ class StreamHandler(private val streamService: StreamService) {
             operationId = "updateStream",
             description = "Update stream",
             parameters = [Parameter(name = "roomId", description = "Room id", required = true), Parameter(name = "participantId", description = "Participant id", required = true)],
-            requestBody = RequestBody(content = [Content(mediaType = "application/json", schema = Schema(implementation = String::class, required = true))]),
+            requestBody = RequestBody(content = [Content(mediaType = "application/json", schema = Schema(implementation = StreamUpdate::class, required = true))]),
             responses = [
-                ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", schema = Schema(implementation = String::class))]),
+                ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", schema = Schema(implementation = StreamInfo::class))]),
                 ApiResponse(responseCode = "400", description = "Bad request error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = BadRequestError.example)])]),
                 ApiResponse(responseCode = "404", description = "Not found", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = NotFoundError.exampleService)])]),
             ]
