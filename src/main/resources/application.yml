@@ -1,10 +1,10 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://localhost:12345
-      database: test
-      #username: test
-      #password: test
+      uri: mongodb://192.168.9.14:12345
+      database: owtdb
+      username: test
+      password: test1234
 
 server:
   address: localhost
