@@ -22,11 +22,11 @@ spring:
           rx-in-0:
             consumer:
               exchange-type: direct
-              binding-routing-key: "test-routing-key"
+              binding-routing-key: 'test-routing-key'
           tx-out-0:
             producer:
               exchange-type: direct
-              routing-key-expression: "test-routing-key"
+              routing-key-expression: "'test-routing-key'"
 
   rabbitmq:
     host: 192.168.9.14

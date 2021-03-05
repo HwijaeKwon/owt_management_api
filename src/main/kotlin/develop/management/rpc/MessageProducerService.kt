@@ -11,17 +11,18 @@ import java.util.function.Supplier
 @Service
 class MessageProducerService {
 
-    private val unicastProcessor = Sinks.many().unicast().onBackpressureBuffer<String>()
+    private val unicastProcessor = Sinks.many().unicast().onBackpressureBuffer<Message<String>>()
 
     fun getProducer() = unicastProcessor
 
     suspend fun sendMessage(message: String) {
-        //val msg = MessageBuilder.withPayload(message).build()
-        unicastProcessor.emitNext(message, Sinks.EmitFailureHandler.FAIL_FAST)
+        val msg = MessageBuilder.withPayload(message)
+            .build()
+        unicastProcessor.emitNext(msg, Sinks.EmitFailureHandler.FAIL_FAST)
     }
 
     @Bean
-    fun tx(): Supplier<Flux<String>> = Supplier {
+    fun tx(): Supplier<Flux<Message<String>>> = Supplier {
         this.getProducer().asFlux()
     }
 }
