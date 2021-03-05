@@ -21,5 +21,6 @@ class RpcTest {
     fun sendMessageTest() = runBlocking {
         val message = "test123!!!"
         producerService.sendMessage(message)
+        sleep(5000)
     }
 }

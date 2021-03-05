@@ -26,7 +26,7 @@ spring:
           tx-out-0:
             producer:
               exchange-type: direct
-              routing-key-expression: "'test-routing-key'"
+              routing-key-expression: headers['routeTo']
 
   rabbitmq:
     host: 192.168.9.14
