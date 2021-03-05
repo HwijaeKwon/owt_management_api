@@ -17,7 +17,7 @@ class MessageProducerService {
 
     suspend fun sendMessage(message: String) {
         val msg = MessageBuilder.withPayload(message)
-            .setHeader("routeTo", "test-routing-key")
+            .setHeader("routeTo", "test-receiver")
             .build()
         unicastProcessor.emitNext(msg, Sinks.EmitFailureHandler.FAIL_FAST)
     }

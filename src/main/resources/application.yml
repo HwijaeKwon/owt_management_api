@@ -12,10 +12,10 @@ spring:
       bindings:
         tx-out-0:
           binder: rabbit
-          destination: myExchange
+          destination: owtRpc
         rx-in-0:
           binder: rabbit
-          destination: myExchange
+          destination: owtRpc
           group: test-queue
       rabbit:
         bindings:
@@ -25,6 +25,8 @@ spring:
               binding-routing-key: 'test-routing-key'
           tx-out-0:
             producer:
+              exchangeDurable: false
+              exchangeAutoDelete: true
               exchange-type: direct
               routing-key-expression: headers['routeTo']
 
