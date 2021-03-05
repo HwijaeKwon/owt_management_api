@@ -7,13 +7,30 @@ spring:
       password: test1234
   cloud:
     function:
-      definition: direct
+        definition: tx;rx
     stream:
       bindings:
-        direct-out-0:
-          destination: owtRpc
+        tx-out-0:
+          binder: rabbit
+          destination: myExchange
+        rx-in-0:
+          binder: rabbit
+          destination: myExchange
+          group: test-queue
+      rabbit:
+        bindings:
+          rx-in-0:
+            consumer:
+              exchange-type: direct
+              binding-routing-key: "test-routing-key"
+          tx-out-0:
+            producer:
+              exchange-type: direct
+              routing-key-expression: "test-routing-key"
+
   rabbitmq:
-    addresses: 192.168.9.14:30000
+    host: 192.168.9.14
+    port: 54321
     username: test
     password: test1234
 

@@ -15,6 +15,8 @@ repositories {
 	mavenCentral()
 }
 
+extra["springCloudVersion"] = "2020.0.1"
+
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -31,8 +33,19 @@ dependencies {
 	implementation("org.springdoc:springdoc-openapi-kotlin:1.5.4")
 	//json object
 	implementation("com.vaadin.external.google:android-json:0.0.20131108.vaadin1")
+	// spring cloud stream rabbitmq
+	implementation("org.springframework.cloud:spring-cloud-starter-stream-rabbit")
+	// spring cloud stream
+	implementation("org.springframework.cloud:spring-cloud-stream")
+
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("io.projectreactor:reactor-test")
+}
+
+dependencyManagement {
+	imports {
+		mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
+	}
 }
 
 tasks.withType<KotlinCompile> {
