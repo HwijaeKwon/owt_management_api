@@ -16,13 +16,14 @@ spring:
         rx-in-0:
           binder: rabbit
           destination: owtRpc
-          group: test-queue
+          #management api가 scalable하려면 중복되지 않는 값을 사용해야 한다
+          group: test-routing-key #${random.uuid}
       rabbit:
         bindings:
           rx-in-0:
             consumer:
               exchange-type: direct
-              binding-routing-key: 'test-routing-key'
+              binding-routing-key: ${spring.cloud.stream.bindings.rx-in-0.group}
           tx-out-0:
             producer:
               exchangeDurable: false

@@ -1,26 +1,32 @@
 package develop.management.service
 
+import com.google.gson.Gson
 import develop.management.domain.document.Token
 import develop.management.domain.dto.TokenConfig
 import develop.management.repository.KeyRepository
 import develop.management.repository.RoomRepository
 import develop.management.repository.TokenRepository
 import develop.management.repository.mongo.RetryOperation
+import develop.management.rpc.MessageService
 import develop.management.util.cipher.Cipher
+import kotlinx.coroutines.reactive.awaitSingleOrNull
 import org.json.JSONObject
 import org.springframework.stereotype.Service
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
+import reactor.kotlin.core.publisher.toMono
+import java.time.Duration
 import java.util.*
 import kotlin.random.Random
 
 /**
  * token 관련 비즈니스 로직을 담당하는 service class
  */
-@Service("v1TokenService")
+@Service
 class TokenService(private val tokenRepository: TokenRepository,
                    private val keyRepository: KeyRepository,
                    private val roomRepository: RoomRepository,
+                   private val messageService: MessageService,
                    private val transactionalOperator: TransactionalOperator,
                    private val retryOperation: RetryOperation
 ) {
@@ -66,6 +72,11 @@ class TokenService(private val tokenRepository: TokenRepository,
         if(room.getRoles().none { it.role == token.getRole() }) throw Exception("Role is not valid")
         val code = Random.nextLong(0, 100000000000).toString() + ""
         //Todo: rpc를 통해 portal에 host를 달라고 요청해야한다
+        val message = Gson().toJson(TestMessage("test message 2"))
+        val reply_stream = messageService.sendMessage(message)
+        val reply_str = reply_stream.toMono()
+            .awaitSingleOrNull()
+        println("reply str !!!!!!! : $reply_str")
         val secure = true
         val host = ""
         token.updateToken(room.getId(), serviceId, code, secure, host)
@@ -74,4 +85,6 @@ class TokenService(private val tokenRepository: TokenRepository,
 
         return tokenToString(savedToken)
     }
+
+    data class TestMessage(val message: String)
 }

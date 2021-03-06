@@ -22,8 +22,8 @@ class MessageProducerService {
         unicastProcessor.emitNext(msg, Sinks.EmitFailureHandler.FAIL_FAST)
     }
 
-    @Bean
+   /* @Bean
     fun tx(): Supplier<Flux<Message<String>>> = Supplier {
         this.getProducer().asFlux()
-    }
+    }*/
 }
