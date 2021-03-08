@@ -147,14 +147,20 @@ class RouterConfig {
             RouterOperation(path = "/v1/rooms/{roomId}/streams", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = StreamHandler::class, beanMethod = "findAll"),
     )
     fun streamRouter(): RouterFunction<ServerResponse> = coRouter {
-        "/v1/rooms/{roomId}/streams".nest {
+        "/v1/rooms/{roomId}".nest {
             accept(MediaType.APPLICATION_JSON).nest {
-                "/{streamId}".nest {
-                    GET("", streamHandler::findOne)
-                    PATCH("", streamHandler::update)
-                    DELETE("", streamHandler::delete)
+                "/streams".nest {
+                    "/{streamId}".nest {
+                        GET("", streamHandler::findOne)
+                        PATCH("", streamHandler::update)
+                        DELETE("", streamHandler::delete)
+                    }
+                    GET("", streamHandler::findAll)
                 }
-                GET("", streamHandler::findAll)
+                "/streaming-ins".nest {
+                    POST("", streamHandler::addStreamingIn)
+                    DELETE("/{streamId}", streamHandler::delete)
+                }
             }
             filter(serviceAuthenticator::authenticate)
             filter(roomValidator::validate)

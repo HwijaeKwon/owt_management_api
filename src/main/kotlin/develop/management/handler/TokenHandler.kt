@@ -1,6 +1,7 @@
 package develop.management.handler
 
 import develop.management.auth.ServiceAuthenticator
+import develop.management.domain.document.Token
 import develop.management.domain.dto.TokenConfig
 import develop.management.service.TokenService
 import develop.management.util.error.AppError
@@ -57,13 +58,13 @@ class TokenHandler(private val tokenService: TokenService) {
 
         val serviceId = authData.service.getId()
         val roomId = request.pathVariable("roomId")
-        val tokenRequest = try { request.awaitBodyOrNull<TokenConfig>() } catch (e: Exception) { null } ?: run {
+        val tokenConfig = try { request.awaitBodyOrNull<TokenConfig>() } catch (e: Exception) { null } ?: run {
             val error = BadRequestError("Invalid request body: Required arguments must not be null")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
-        val errors = BeanPropertyBindingResult(tokenRequest, TokenConfig::class.java.name)
-        validator.validate(tokenRequest, errors)
+        val errors = BeanPropertyBindingResult(tokenConfig, TokenConfig::class.java.name)
+        validator.validate(tokenConfig, errors)
         if(errors.allErrors.isNotEmpty()) {
             var message = "Invalid request body: "
             errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
@@ -72,7 +73,10 @@ class TokenHandler(private val tokenService: TokenService) {
         }
 
         return try {
-            val result = tokenService.create(serviceId, roomId, tokenRequest)
+            val user = authData.user?: tokenConfig.user
+            val role = authData.role?: tokenConfig.role
+            val origin = tokenConfig.preference
+            val result = tokenService.create(serviceId, roomId, user, role, origin)
             //legacy 호환을 위해 TokenInfo를 사용하지 않는다
             ok().contentType(MediaType.TEXT_PLAIN).bodyValueAndAwait(result)
         } catch (e: IllegalStateException) {

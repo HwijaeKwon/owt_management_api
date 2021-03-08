@@ -34,9 +34,9 @@ class ServiceService(private val serviceRepository: ServiceRepository, private v
     /**
      * 특정 service를 반환한다
      */
-    suspend fun findOne(serviceId: String): develop.management.domain.document.Service? {
+    suspend fun findOne(serviceId: String): develop.management.domain.document.Service {
         //repository error 체크가 필요하다 -> service id는 null이 될 수 없다.
-        return serviceRepository.findById(serviceId)
+        return serviceRepository.findById(serviceId)?: throw IllegalArgumentException("Service not found")
     }
 
     /**

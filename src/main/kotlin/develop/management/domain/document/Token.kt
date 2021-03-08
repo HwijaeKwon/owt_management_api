@@ -4,31 +4,27 @@ import develop.management.domain.dto.TokenConfig
 import io.swagger.v3.oas.annotations.media.Schema
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
+import java.util.*
 
 /**
  * token 관련 정보를 저장하는 document class
  * https://software.intel.com/sites/products/documentation/webrtc/restapi/ Token 참고
  */
 @Document(collection = "token")
-class Token private constructor(private val user: String,
-                                private val role: String,
-                                private val origin: Origin) {
-
-    companion object {
-        fun createToken(tokenConfig: TokenConfig): Token {
-            return Token(tokenConfig.user, tokenConfig.role, tokenConfig.preference)
-        }
-    }
+class Token constructor(private val roomId: String,
+                        private val serviceId: String,
+                        private val user: String,
+                        private val role: String,
+                        private val origin: Origin,
+                        private val code: String,
+                        private val secure: Boolean,
+                        private val host: String) {
 
     //String <-> ObjectId 전환. MongoDB에서 생성되는 primary key
     @Id
     private lateinit var _id : String
 
-    private var roomId: String = ""//room id (Room document)
-    private var serviceId: String = ""//service id (Service document)
-    private var code: String = ""
-    private var secure: Boolean = false
-    private var host: String = ""
+    private var creationDate: Date = Date()
 
     fun getId(): String = this._id
     fun getUser(): String = this.user
@@ -39,17 +35,6 @@ class Token private constructor(private val user: String,
     fun getCode(): String = this.code
     fun getSecure(): Boolean = this.secure
     fun getHost(): String = this.host
-
-    /**
-     * 외부에서 token을 업데이트 한다
-     */
-    fun updateToken(roomId: String, serviceId: String, code: String, secure: Boolean, host: String) {
-        this.roomId = roomId
-        this.serviceId = serviceId
-        this.code = code
-        this.secure = secure
-        this.host = host
-    }
 
     class Origin(
         @Schema(description = "Isp of the token", nullable = true, required = false)

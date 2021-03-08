@@ -2,17 +2,19 @@ package develop.management.service
 
 import com.google.gson.Gson
 import com.mongodb.client.result.DeleteResult
+import develop.management.domain.Sip
 import develop.management.domain.ViewVideo
 import develop.management.domain.document.Room
 import develop.management.domain.dto.UpdateOptions
 import develop.management.repository.RoomRepository
 import develop.management.repository.ServiceRepository
 import develop.management.repository.mongo.RetryOperation
+import develop.management.rpc.RpcService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
-import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.reflect.full.memberProperties
 
 /**
  * Room 관련 비즈니스 로직을 수행하는 서비스
@@ -21,7 +23,8 @@ import kotlin.collections.ArrayList
 class RoomService(private val serviceRepository: ServiceRepository,
                   private val roomRepository: RoomRepository,
                   private val transactionalOperator: TransactionalOperator,
-                  private val retryOperation: RetryOperation
+                  private val retryOperation: RetryOperation,
+                  private val rpcService: RpcService
 ) {
 
     /**
@@ -59,11 +62,10 @@ class RoomService(private val serviceRepository: ServiceRepository,
      * RPC를 통해 conference에 room 생성을 알린다
      */
     suspend fun create(serviceId: String, room: Room): Room {
+        /*
         if(!checkMediaOut(room)) throw IllegalStateException("MediaOut conflicts with View Setting")
 
-        //Todo: audio only view를 고려해야한다 -> 필요한 부분인지 살펴보자
-        //Todo: sip인 경우 rpc로 sip portal에 정보를 전달해야한다
-       /* return retryOperation.execute {
+        val savedRoom = retryOperation.execute {
             transactionalOperator.executeAndAwait {
                 val service = serviceRepository.findById(serviceId)?: throw IllegalArgumentException("Service not found")
                 val savedRoom = roomRepository.save(room)
@@ -71,29 +73,45 @@ class RoomService(private val serviceRepository: ServiceRepository,
                 serviceRepository.save(service)
                 return@executeAndAwait savedRoom
             }!!
-        }*/
+        }
+
+        //Notify SIP portal if SIP room created
+        if(savedRoom.getSip().sipServer != null) {
+            rpcService.notifySipPortal("create", savedRoom)
+        }
+
+        return savedRoom
+        */
+
+        if(!checkMediaOut(room)) throw IllegalStateException("MediaOut conflicts with View Setting")
 
         val service = serviceRepository.findById(serviceId)?: throw IllegalArgumentException("Service not found")
         val savedRoom = roomRepository.save(room)
         service.addRoom(savedRoom.getId())
         serviceRepository.save(service)
+
+        //Notify SIP portal if SIP room created
+        if(savedRoom.getSip().sipServer != null) {
+            rpcService.notifySipPortal("create", savedRoom)
+        }
+
         return savedRoom
     }
 
     /**
      * 특정 room을 반환한다
      */
-    suspend fun findOne(serviceId: String, roomId: String): Room? {
+    suspend fun findOne(serviceId: String, roomId: String): Room {
         /*return retryOperation.execute {
             transactionalOperator.executeAndAwait {
                 val service = serviceRepository.findById(serviceId)?: throw IllegalArgumentException("Service not found")
-                if(service.getRooms().none{it == roomId}) return@executeAndAwait null
-                return@executeAndAwait roomRepository.findById(roomId)
+                if(service.getRooms().none{it == roomId}) throw IllegalArgumentException("Room not found")
+                return@executeAndAwait roomRepository.findById(roomId)?: throw IllegalArgumentException("Room not found")
             }
         }*/
         val service = serviceRepository.findById(serviceId)?: throw IllegalArgumentException("Service not found")
-        if(service.getRooms().none{it == roomId}) return null
-        return roomRepository.findById(roomId)
+        if(service.getRooms().none{it == roomId}) throw IllegalArgumentException("Room not found")
+        return roomRepository.findById(roomId)?: throw IllegalArgumentException("Room not found")
     }
 
     /**
@@ -113,48 +131,102 @@ class RoomService(private val serviceRepository: ServiceRepository,
     /**
      * 업데이트 정보의 유효성을 확인하고 room의 정보를 갱신한다
      */
-    suspend fun update(serviceId: String, roomId: String, update: UpdateOptions): Room? {
-        /*return retryOperation.execute {
+    suspend fun update(serviceId: String, roomId: String, update: UpdateOptions): Room {
+        /*
+        val (sipOld, savedRoom) = retryOperation.execute {
             transactionalOperator.executeAndAwait {
                 val service = serviceRepository.findById(serviceId)?: throw IllegalArgumentException("Service not found")
-                if(service.getRooms().none{it == roomId}) return@executeAndAwait null
-                return@executeAndAwait roomRepository.findById(roomId)?.let {
-                    if(!checkMediaOut(it.also { it.update(update) })) throw IllegalStateException("MediaOut conflicts with View Setting")
-                    //Todo: updateAudioOnlyViews가 필요한지 살펴보자
-                    roomRepository.save(it)
-                }
-            }
-        }*/
-        val service = serviceRepository.findById(serviceId)?: throw IllegalArgumentException("Service not found")
-        if(service.getRooms().none{it == roomId}) return null
-        return roomRepository.findById(roomId)?.let {
-            if(!checkMediaOut(it.also { it.update(update) })) throw IllegalStateException("MediaOut conflicts with View Setting")
-            //Todo: updateAudioOnlyViews가 필요한지 살펴보자
-            roomRepository.save(it)
+                if(service.getRooms().none{it == roomId}) throw IllegalArgumentException("Room not found")
+                val room = roomRepository.findById(roomId)?: throw IllegalArgumentException("Room not found")
+                val sipOld = room.getSip().copy()
+                if(!checkMediaOut(room.also { it.update(update) })) throw IllegalStateException("MediaOut conflicts with View Setting")
+                Pair(sipOld, roomRepository.save(room))
+            }!!
         }
+
+        //Notify SIP portal if SIP room updated
+        val sipNew = savedRoom.getSip()
+        var changeType: String? = null
+        if(sipOld.sipServer == null && sipNew.sipServer != null) {
+            changeType = "create"
+        } else if(sipOld.sipServer != null && sipNew.sipServer == null) {
+            changeType = "delete"
+        } else if(sipOld.sipServer != null && sipOld.sipServer != null) {
+            if(sipOld != sipNew) {
+                changeType = "update"
+            }
+        }
+        if(changeType != null) {
+            rpcService.notifySipPortal(changeType, savedRoom)
+        }
+
+        return savedRoom
+        */
+
+        val service = serviceRepository.findById(serviceId)?: throw IllegalArgumentException("Service not found")
+        if(service.getRooms().none{it == roomId}) throw IllegalArgumentException("Room not found")
+        val room = roomRepository.findById(roomId)?: throw IllegalArgumentException("Room not found")
+        val sipOld = room.getSip().copy()
+        if(!checkMediaOut(room.also { it.update(update) })) throw IllegalStateException("MediaOut conflicts with View Setting")
+        val savedRoom = roomRepository.save(room)
+
+        //Notify SIP portal if SIP room updated
+        val sipNew = savedRoom.getSip()
+        var changeType: String? = null
+        if(sipOld.sipServer == null && sipNew.sipServer != null) {
+            changeType = "create"
+        } else if(sipOld.sipServer != null && sipNew.sipServer == null) {
+            changeType = "delete"
+        } else if(sipOld.sipServer != null && sipNew.sipServer != null) {
+            if(sipOld != sipNew) {
+                changeType = "update"
+            }
+        }
+        if(changeType != null) {
+            rpcService.notifySipPortal(changeType, savedRoom)
+        }
+
+        return savedRoom
     }
 
     /**
      * 특정 room을 제거한다
      */
     suspend fun delete(serviceId: String, roomId: String): DeleteResult {
-        /*return retryOperation.execute {
+        /*
+        val (room, deleteResult) = retryOperation.execute {
             transactionalOperator.executeAndAwait {
+                val room = roomRepository.findById(roomId)?: throw IllegalArgumentException("Room not found")
+                val result = roomRepository.deleteById(roomId)
+                if(result.deletedCount == 0L) throw IllegalArgumentException("Room not found")
+
                 val service = serviceRepository.findById(serviceId)?: throw IllegalArgumentException("Service not found")
                 if(service.getRooms().none{it == roomId}) throw IllegalArgumentException("Room not found")
                 service.removeRoom(roomId)
                 serviceRepository.save(service)
-                val result = roomRepository.deleteById(roomId)
-                if(result.deletedCount == 0L) throw IllegalArgumentException("Room not found")
-                return@executeAndAwait result
+                return@executeAndAwait Pair(room, result)
             }!!
-        }*/
+        }
+
+        rpcService.deleteRoom(room.getId());
+        if(room.getSip().sipServer != null) rpcService.notifySipPortal("delete", room)
+
+        return deleteResult
+        */
+
+        val room = roomRepository.findById(roomId)?: throw IllegalArgumentException("Room not found")
+        val result = roomRepository.deleteById(roomId)
+        if(result.deletedCount == 0L) throw IllegalArgumentException("Room not found")
+
         val service = serviceRepository.findById(serviceId)?: throw IllegalArgumentException("Service not found")
         if(service.getRooms().none{it == roomId}) throw IllegalArgumentException("Room not found")
         service.removeRoom(roomId)
         serviceRepository.save(service)
-        val result = roomRepository.deleteById(roomId)
-        if(result.deletedCount == 0L) throw IllegalArgumentException("Room not found")
+
+        rpcService.deleteRoom(room.getId())
+
+        if(room.getSip().sipServer != null) rpcService.notifySipPortal("delete", room)
+
         return result
     }
 }

@@ -1,26 +1,16 @@
 package develop.management.service
 
-import com.google.gson.Gson
-import com.google.gson.JsonObject
 import develop.management.domain.document.Token
-import develop.management.domain.dto.PermissionUpdate
-import develop.management.domain.dto.TokenConfig
 import develop.management.repository.KeyRepository
 import develop.management.repository.RoomRepository
 import develop.management.repository.TokenRepository
 import develop.management.repository.mongo.RetryOperation
-import develop.management.rpc.RpcController
 import develop.management.rpc.RpcService
 import develop.management.util.cipher.Cipher
-import kotlinx.coroutines.reactive.awaitSingleOrNull
-import org.json.JSONArray
 import org.json.JSONObject
 import org.springframework.stereotype.Service
 import org.springframework.transaction.reactive.TransactionalOperator
-import reactor.kotlin.core.publisher.toMono
-import java.time.Duration
 import java.util.*
-import java.util.concurrent.TimeoutException
 import kotlin.random.Random
 
 /**
@@ -30,10 +20,7 @@ import kotlin.random.Random
 class TokenService(private val tokenRepository: TokenRepository,
                    private val keyRepository: KeyRepository,
                    private val roomRepository: RoomRepository,
-                   private val rpcController: RpcController,
-                   private val transactionalOperator: TransactionalOperator,
-                   private val retryOperation: RetryOperation
-) {
+                   private val rpcService: RpcService) {
 
     /**
      * token과 key를 조합하여 string형태의 token을 생성한다
@@ -55,43 +42,27 @@ class TokenService(private val tokenRepository: TokenRepository,
     /**
      * 특정 service의 특정 room을 위한 token을 생성한다
      */
-    suspend fun create(serviceId: String, roomId: String, tokenConfig: TokenConfig): String {
-        val token = Token.createToken(tokenConfig)
+    suspend fun create(serviceId: String, roomId: String, user: String, role: String, origin: Token.Origin): String {
 
-        /*val savedToken = retryOperation.execute {
-            transactionalOperator.executeAndAwait {
-                val room = roomRepository.findById(roomId)?: throw IllegalArgumentException("Room not found")
-                if(room.getRoles().none { it.role == token.getRole() }) throw Exception("Role is not valid")
-                val code = Random.nextLong(0, 100000000000).toString() + ""
-                //Todo: rpc를 통해 portal에 host를 달라고 요청해야한다
-                val secure = true
-                val host = ""
-                token.updateToken(room.getId(), serviceId, code, secure, host)
-                //token repository error를 고려해야 한다 -> token은 null이 될 수 없다
-                tokenRepository.save(token)
-            }!!
-        }*/
-
+        if(user.isBlank()) throw IllegalArgumentException("Name or role not valid")
         val room = roomRepository.findById(roomId)?: throw IllegalArgumentException("Room not found")
-        if(room.getRoles().none { it.role == token.getRole() }) throw Exception("Role is not valid")
-        val code = Random.nextLong(0, 100000000000).toString() + ""
-        //Todo: rpc를 통해 portal에 host를 달라고 요청해야한다
-        val test = PermissionUpdate("op", "path", true)
-        val jsonStr = Gson().toJson(test)
-        val jsonObject = JSONObject(jsonStr)
+        if(room.getRoles().none { it.role == role }) throw Exception("Role is not valid")
 
-        val (reply_stream, corrID) = rpcController.sendMessage("test-receiver", "test-method", JSONArray().put(jsonObject))
-        val reply = try {
-            reply_stream.timeout(Duration.ofMillis(5000)).toMono().awaitSingleOrNull()
-        } catch (e: TimeoutException) {
-            "timeout".apply { rpcController.deleteCorrID(corrID) }
-        }
-        println("reply str : $reply")
-        val secure = true
-        val host = ""
-        token.updateToken(room.getId(), serviceId, code, secure, host)
-        //token repository error를 고려해야 한다 -> token은 null이 될 수 없다
-        val savedToken = tokenRepository.save(token)
+        val code = Random.nextLong(0, 100000000000).toString() + ""
+
+        val (status, result) = rpcService.schedulePortal(code, origin)
+
+        if(status == "error") throw IllegalStateException("Schedule portal fail. $result")
+
+        val jsonResult = JSONObject(result)
+        val secure = if(jsonResult.getBoolean("under_https_proxy")) true else jsonResult.getBoolean("ssl")
+
+        val hostname = jsonResult.getString("hostname")
+        val port = jsonResult.getString("port")
+        val ip = jsonResult.getString("ip")
+        val host = if(hostname.isNotBlank()) "$hostname:$port" else "$ip:$port"
+
+        val savedToken = tokenRepository.save(Token(roomId, serviceId, user, role, origin, code, secure, host))
 
         return tokenToString(savedToken)
     }

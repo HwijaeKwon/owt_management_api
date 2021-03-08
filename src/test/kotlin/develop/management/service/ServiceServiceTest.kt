@@ -97,7 +97,7 @@ internal class ServiceServiceTest {
         Assertions.assertNotNull(result)
         val gson = GsonBuilder().setPrettyPrinting().create()
         println(gson.toJson(result))
-        Assertions.assertEquals(service.getId(), result!!.getId())
+        Assertions.assertEquals(service.getId(), result.getId())
     }
 
     /**
@@ -108,8 +108,8 @@ internal class ServiceServiceTest {
     fun findNotExistOneTest() {
         val serviceId = "not_exist_service@" + Cipher.generateByteArray(1).decodeToString()
         if( runBlocking { serviceRepository.existsById(serviceId) } ) throw AssertionError("Service already exists")
-        val result = runBlocking { serviceService.findOne(serviceId) }
-        Assertions.assertNull(result)
+        val exception = Assertions.assertThrows(IllegalArgumentException::class.java) { runBlocking { serviceService.findOne(serviceId)}}
+        Assertions.assertEquals("Service not found", exception.message)
     }
 
     /**

@@ -87,9 +87,10 @@ class ServiceHandler(private val serviceService: ServiceService) {
     suspend fun findOne(request: ServerRequest): ServerResponse {
         val streamId = request.pathVariable("serviceId")
 
-        return serviceService.findOne(streamId)?. let {
-            ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(ServiceInfo(it.getId(), it.getName(), it.getKey()))
-        }?: run {
+        return try {
+            val result = serviceService.findOne(streamId)
+            ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(ServiceInfo(result.getId(), result.getName(), result.getKey()))
+        } catch (e: IllegalArgumentException) {
             val error = NotFoundError("Service not found")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }

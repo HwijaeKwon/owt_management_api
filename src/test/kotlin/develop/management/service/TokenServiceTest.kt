@@ -69,7 +69,7 @@ internal class TokenServiceTest {
     @Test
     fun createTest() {
         val tokenRequest = TokenConfig("user", "presenter")
-        val result = runBlocking { tokenService.create(serviceId, room.getId(), tokenRequest) }
+        val result = runBlocking { tokenService.create(serviceId, room.getId(), tokenRequest.user, tokenRequest.role, tokenRequest.preference) }
         Assertions.assertNotNull(result)
         println(result)
         val tokenStr = Base64.getDecoder().decode(result).decodeToString()
@@ -86,7 +86,7 @@ internal class TokenServiceTest {
     @Test
     fun notMatchRoleTest() {
         val tokenRequest = TokenConfig("user", "test")
-        val exception = Assertions.assertThrows(Exception::class.java) { runBlocking { tokenService.create(serviceId, room.getId(), tokenRequest) } }
+        val exception = Assertions.assertThrows(Exception::class.java) { runBlocking { tokenService.create(serviceId, room.getId(), tokenRequest.user, tokenRequest.role, tokenRequest.preference) } }
         Assertions.assertEquals("Role is not valid", exception.message)
     }
 
@@ -99,7 +99,7 @@ internal class TokenServiceTest {
         runBlocking {
             keyRepository.deleteById(0)
             val tokenRequest = TokenConfig("user", "presenter")
-            val exception = Assertions.assertThrows(IllegalStateException::class.java) { runBlocking { tokenService.create(serviceId, room.getId(), tokenRequest) } }
+            val exception = Assertions.assertThrows(IllegalStateException::class.java) { runBlocking { tokenService.create(serviceId, room.getId(), tokenRequest.user, tokenRequest.role, tokenRequest.preference) } }
             Assertions.assertEquals("Key does not exist", exception.message)
         }
     }

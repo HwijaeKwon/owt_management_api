@@ -20,8 +20,8 @@ data class StreamingInRequest(
                 val url: String,
                 @Schema(description = "Transport protocol of connection", nullable = false, required = false, defaultValue = "tcp", example = "udp")
                 val transportProtocol: String = "tcp",
-                @Schema(description = "The buffer size in bytes in case \"udp\" is specified, 8182 by default", nullable = false, required = false, defaultValue = "8182")
-                val bufferSize: Number = 8182)
+                @Schema(description = "The buffer size in bytes in case \"udp\" is specified, 8182 by default", nullable = false, required = false, minimum = "1", defaultValue = "8182")
+                val bufferSize: Int = 8182)
 
         data class Media(
                 @Schema(description = "Audio activation mode. \"auto\" | \"true\" | \"false\"", nullable = false, required = true, example = "auto")

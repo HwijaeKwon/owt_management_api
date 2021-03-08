@@ -136,7 +136,7 @@ internal class RoomServiceTest {
         Assertions.assertNotNull(result)
         val gson = GsonBuilder().setPrettyPrinting().create()
         println(gson.toJson(result))
-        Assertions.assertEquals(room.getId(), result!!.getId())
+        Assertions.assertEquals(room.getId(), result.getId())
     }
 
     /**
@@ -158,8 +158,8 @@ internal class RoomServiceTest {
     fun findNotExistInServiceOneTest() = runBlocking {
         service.removeRoom(room.getId())
         service = serviceRepository.save(service)
-        val result = roomService.findOne(service.getId(), room.getId())
-        Assertions.assertNull(result)
+        val exception = Assertions.assertThrows(IllegalArgumentException::class.java) { runBlocking { roomService.findOne(service.getId(), room.getId())}}
+        Assertions.assertEquals("Room not found", exception.message)
     }
 
     /**
@@ -172,8 +172,8 @@ internal class RoomServiceTest {
         service.addRoom(roomId)
         service = runBlocking { serviceRepository.save(service) }
         if( runBlocking { roomRepository.existsById((roomId))}) throw AssertionError("Room already exists")
-        val result = runBlocking { roomService.findOne(service.getId(), roomId) }
-        Assertions.assertNull(result)
+        val exception = Assertions.assertThrows(IllegalArgumentException::class.java) { runBlocking { roomService.findOne(service.getId(), room.getId())}}
+        Assertions.assertEquals("Room not found", exception.message)
     }
 
     /**
@@ -202,7 +202,7 @@ internal class RoomServiceTest {
         Assertions.assertNotNull(result)
         val gson = GsonBuilder().setPrettyPrinting().create()
         println(gson.toJson(result))
-        Assertions.assertEquals(3, result!!.getParticipantLimit())
+        Assertions.assertEquals(3, result.getParticipantLimit())
         Assertions.assertEquals(3, result.getInputLimit())
     }
 
@@ -260,8 +260,8 @@ internal class RoomServiceTest {
             roomRepository.save(testRoom).getId()
         }
         val update = UpdateOptions("name")
-        val result = runBlocking { roomService.update(service.getId(), id, update) }
-        Assertions.assertNull(result)
+        val exception = Assertions.assertThrows(IllegalArgumentException::class.java) { runBlocking { roomService.update("", id, update) } }
+        Assertions.assertEquals("Room not found", exception.message)
     }
 
     /**
@@ -279,8 +279,8 @@ internal class RoomServiceTest {
         service.addRoom(id)
         service = runBlocking { serviceRepository.save(service) }
         val update = UpdateOptions("name")
-        val result = runBlocking { roomService.update(service.getId(), id, update) }
-        Assertions.assertNull(result)
+        val exception = Assertions.assertThrows(IllegalArgumentException::class.java) { runBlocking { roomService.update("", id, update) } }
+        Assertions.assertEquals("Room not found", exception.message)
     }
 
     /**

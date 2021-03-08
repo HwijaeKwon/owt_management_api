@@ -105,9 +105,8 @@ class RoomHandler(private val roomService: RoomService) {
         val roomId = request.pathVariable("roomId")
 
         return try {
-            roomService.findOne(serviceId, roomId)?.let {
-                ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(RoomInfo.create(it))
-            }?: throw IllegalArgumentException("Room not found")
+            val result = roomService.findOne(serviceId, roomId)
+            ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(RoomInfo.create(result))
         } catch (e: IllegalArgumentException) {
             val message = e.message?: "Not found error"
             val error = NotFoundError(message)
@@ -177,9 +176,8 @@ class RoomHandler(private val roomService: RoomService) {
         }
 
         return try {
-            roomService.update(serviceId, roomId, update)?.let {
-                ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(RoomInfo.create(it))
-            }?: throw IllegalArgumentException("Room not found")
+            val result = roomService.update(serviceId, roomId, update)
+            ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(RoomInfo.create(result))
         } catch (e: IllegalStateException) {
             val message = e.message?: ""
             val error = AppError("Update room failed: $message")

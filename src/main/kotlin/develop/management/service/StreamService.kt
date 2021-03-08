@@ -3,8 +3,11 @@ package develop.management.service
 import com.google.gson.Gson
 import develop.management.domain.dto.StreamInfo
 import develop.management.domain.dto.StreamUpdate
+import develop.management.domain.dto.StreamingInRequest
+import develop.management.rpc.RpcService
 import kotlinx.coroutines.reactive.awaitLast
 import kotlinx.coroutines.reactive.awaitSingleOrNull
+import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import org.springframework.stereotype.Service
@@ -16,7 +19,7 @@ import reactor.kotlin.core.publisher.toMono
  * stream 관련 비즈니스 로직을 수행하는 서비스
  */
 @Service
-class StreamService {
+class StreamService(private val rpcService: RpcService) {
 
     /**
      * v1.1 stream을 v1 stream으로 전환하는 함수
@@ -38,77 +41,75 @@ class StreamService {
     /**
      * 특정 room에 속한 특정 stream을 반환한다
      */
-    suspend fun findOne(roomId: String, streamId: String): StreamInfo? {
-        //Todo: rabbitmq로 conference agent에게 stream 목록을 받아와야함
-        //rabbitmq에서 flux로 넘겨줄 경우 (test용 json)
-        val testStr = """
-            {
-            "id" = "test"
+    suspend fun findOne(roomId: String, streamId: String): StreamInfo {
+        val (status, streams) = rpcService.getStreamsInRoom(roomId)
+        if(status == "error") throw IllegalStateException("Get streams in room fail. $streams")
+        val jsonArray = JSONArray()
+        val streamArray = mutableListOf<JSONObject>()
+        try {
+            var i = 0
+            while (true) {
+                streamArray.add(jsonArray.getJSONObject(i))
+                i++
             }
-        """.trimIndent()
-        val testJson = JSONObject(testStr)
-        val streamFluxList: Flux<JSONObject> = ArrayList<JSONObject>(listOf(testJson)).toFlux()
+        } catch (e: JSONException) {
+            //
+        }
 
-        //Todo : rabbitmq에서 데이터를 받다가 실패한 경우를 exception error로 catch할 수 있어야 한다
-        return streamFluxList.filter { streamJson -> streamJson.getString("id") == streamId }
-                .map { streamJson -> convertToV1Stream(streamJson.toString()) }
-                .map { streamString -> Gson().fromJson(streamString, StreamInfo::class.java)}
-                .awaitSingleOrNull()
+        return streamArray.firstOrNull { it.getString("id") == streamId }?.let {
+            Gson().fromJson(it.toString(), StreamInfo::class.java)
+        }?: throw IllegalArgumentException("Stream not found")
     }
 
     /**
      * 특정 room의 모든 stream을 반환한다
-     * Flow를 반환하려고 하였으나, response type이 List여야하므로 List를 반환하도록 구현하였다
-     * Flow로 반환한다면 handler에서 list를 만들어줘야 한다
      */
     suspend fun findAll(roomId: String): List<StreamInfo> {
-        //Todo: rabbitmq로 conference agent에게 stream 목록을 받아와야함
-        //rabbitmq에서 flux로 넘겨줄 경우 (test용 json)
-        val testStr = """
-            {
-            "id" = "test"
+        val (status, streams) = rpcService.getStreamsInRoom(roomId)
+        if(status == "error") throw IllegalStateException("Get streams in room fail. $streams")
+        val jsonArray = JSONArray()
+        val streamArray = mutableListOf<JSONObject>()
+        try {
+            var i = 0
+            while (true) {
+                streamArray.add(jsonArray.getJSONObject(i))
+                i++
             }
-        """.trimIndent()
-        val testStr2 = """
-            {
-            "id" = "test2"
-            }
-        """.trimIndent()
-        val testJson = JSONObject(testStr)
-        val testJson2 = JSONObject(testStr2)
-        val streamFluxList: Flux<JSONObject> = listOf(testJson, testJson2).toFlux()
-        //Todo : rabbitmq에서 데이터를 받다가 실패한 경우를 exception error로 catch할 수 있어야 한다
-        val streamJson: List<JSONObject> = streamFluxList.collectList().awaitLast()
-        return streamJson.map { jsonObject -> convertToV1Stream(jsonObject.toString()) }
+        } catch (e: JSONException) {
+            //
+        }
+        return streamArray.map { jsonObject -> convertToV1Stream(jsonObject.toString()) }
                 .map { streamString -> Gson().fromJson(streamString, StreamInfo::class.java) }
     }
 
     /**
      * 특정 room에 속한 특정 stream을 updateInfo를 반영하여 갱신한다
      */
-    suspend fun update(roomId: String, streamId: String, updateInfo: StreamUpdate):StreamInfo? {
-        //Todo: updateInfo를 validation해야 한다
-        //Todo: rabbitmq에 stream update를 요청한다
-        //rabbitmq에서 결과를 flux로 넘겨줄 경우 (test용 json)
-        val testStr = """
-            {
-            "id" = "test"
-            }
-        """.trimIndent()
-        val stream = JSONObject(testStr).toMono()
+    suspend fun update(roomId: String, streamId: String, updateInfo: StreamUpdate):StreamInfo {
+        val (status, result) = rpcService.controlStream(roomId, streamId, updateInfo)
 
-        //Todo : rabbitmq에서 데이터를 받다가 실패한 경우를 exception error로 catch할 수 있어야 한다
-        return stream
-                .map{ jsonObject -> convertToV1Stream(jsonObject.toString()) }
-                .map { streamString -> Gson().fromJson(streamString, StreamInfo::class.java) }
-                .awaitSingleOrNull()
+        if(status == "error") throw IllegalStateException("Control stream fail. $result")
+
+        val stream = convertToV1Stream(result)
+        return Gson().fromJson(stream, StreamInfo::class.java)
     }
 
     /**
      * 특정 room에 속한 특정 stream을 제거한다
      */
     suspend fun delete(roomId: String, streamId: String) {
-        //Todo : rabbitmq에서 요청을 했다가 실패한 경우를 exception error로 catch할 수 있어야 한다
-        //제거 요청
+        val (status, result) = rpcService.deleteStream(roomId, streamId)
+        if(status == "error") throw IllegalStateException("Delete stream fail. $result")
+    }
+
+    /**
+     * 새로운 streaming in을 추가한다
+     */
+    suspend fun addStreamingIn(roomId: String, pub_req: StreamingInRequest): StreamInfo {
+        val (status, result) = rpcService.addStreamingIn(roomId, pub_req)
+        if(status == "error") throw IllegalStateException("Add streamingin fail. $result")
+
+        val stream = convertToV1Stream(result)
+        return Gson().fromJson(stream, StreamInfo::class.java)
     }
 }
