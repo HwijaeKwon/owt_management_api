@@ -9,9 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema
  */
 class Notifying(
     @Schema(description = "Whether enable notification for participantActivities", nullable = false, defaultValue = "true")
-    participantActivities: Boolean,
+    val participantActivities: Boolean = true,
     @Schema(description = "Whether enable notification for streamChange", nullable = false, defaultValue = "true")
-    streamChange: Boolean) {
-    val participantActivities = true
-    val streamChange = true
+    val streamChange: Boolean = true) {
 }

@@ -1,9 +1,6 @@
 package develop.management.domain.dto
 
-import com.google.gson.Gson
-import develop.management.domain.AudioInfo
 import develop.management.domain.MediaInfo
-import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Schema
 
 /**

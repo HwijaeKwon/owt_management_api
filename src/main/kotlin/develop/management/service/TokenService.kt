@@ -3,19 +3,24 @@ package develop.management.service
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import develop.management.domain.document.Token
+import develop.management.domain.dto.PermissionUpdate
 import develop.management.domain.dto.TokenConfig
 import develop.management.repository.KeyRepository
 import develop.management.repository.RoomRepository
 import develop.management.repository.TokenRepository
 import develop.management.repository.mongo.RetryOperation
+import develop.management.rpc.RpcController
 import develop.management.rpc.RpcService
 import develop.management.util.cipher.Cipher
 import kotlinx.coroutines.reactive.awaitSingleOrNull
+import org.json.JSONArray
 import org.json.JSONObject
 import org.springframework.stereotype.Service
 import org.springframework.transaction.reactive.TransactionalOperator
 import reactor.kotlin.core.publisher.toMono
+import java.time.Duration
 import java.util.*
+import java.util.concurrent.TimeoutException
 import kotlin.random.Random
 
 /**
@@ -25,7 +30,7 @@ import kotlin.random.Random
 class TokenService(private val tokenRepository: TokenRepository,
                    private val keyRepository: KeyRepository,
                    private val roomRepository: RoomRepository,
-                   private val rpcService: RpcService,
+                   private val rpcController: RpcController,
                    private val transactionalOperator: TransactionalOperator,
                    private val retryOperation: RetryOperation
 ) {
@@ -71,10 +76,17 @@ class TokenService(private val tokenRepository: TokenRepository,
         if(room.getRoles().none { it.role == token.getRole() }) throw Exception("Role is not valid")
         val code = Random.nextLong(0, 100000000000).toString() + ""
         //Todo: rpc를 통해 portal에 host를 달라고 요청해야한다
-        val reply_stream = rpcService.sendMessage("test-receiver", "test message from Spring")
-        val reply_str = reply_stream.toMono()
-            .awaitSingleOrNull()
-        println("reply str : $reply_str")
+        val test = PermissionUpdate("op", "path", true)
+        val jsonStr = Gson().toJson(test)
+        val jsonObject = JSONObject(jsonStr)
+
+        val (reply_stream, corrID) = rpcController.sendMessage("test-receiver", "test-method", JSONArray().put(jsonObject))
+        val reply = try {
+            reply_stream.timeout(Duration.ofMillis(5000)).toMono().awaitSingleOrNull()
+        } catch (e: TimeoutException) {
+            "timeout".apply { rpcController.deleteCorrID(corrID) }
+        }
+        println("reply str : $reply")
         val secure = true
         val host = ""
         token.updateToken(room.getId(), serviceId, code, secure, host)

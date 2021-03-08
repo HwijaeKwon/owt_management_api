@@ -27,7 +27,7 @@ class RoomService(private val serviceRepository: ServiceRepository,
     /**
      * audio만 있는 view의 label을 반환한다
      */
-    fun getAudioOnlyLabels(room: Room): List<String> {
+    private fun getAudioOnlyLabels(room: Room): List<String> {
         val labels : MutableList<String> = ArrayList()
         room.getViews().filter { it.video == false }.forEach { view -> labels.add(view.label) }
         return labels
@@ -36,7 +36,7 @@ class RoomService(private val serviceRepository: ServiceRepository,
     /**
      * mediaOut 설정과 view의 설정이 같은지 확인한다
      */
-    fun checkMediaOut(room: Room): Boolean {
+    private fun checkMediaOut(room: Room): Boolean {
         return if(room.getViews().isEmpty()) true //views가 null이거나 빈 리스트일 경우
             else room.getViews().any {
             view -> room.getMediaOut().audio.any {
@@ -47,7 +47,7 @@ class RoomService(private val serviceRepository: ServiceRepository,
         }
     }
 
-    fun convertToViewVideo(viewVideo: Any): ViewVideo {
+    private fun convertToViewVideo(viewVideo: Any): ViewVideo {
         if(viewVideo !is ViewVideo) {
             return Gson().fromJson(viewVideo.toString(), ViewVideo::class.java)
         }
