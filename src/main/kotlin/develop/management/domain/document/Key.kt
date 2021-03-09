@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document
  * key값을 저장하는 document class
  */
 
-@Document(collection = "key")
+@Document(collection = "keys")
 class Key private constructor(private var key: String) {
 
     companion object {

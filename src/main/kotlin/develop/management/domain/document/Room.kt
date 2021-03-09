@@ -12,7 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document
  * room 관련 정보를 저장하는 document class
  * https://software.intel.com/sites/products/documentation/webrtc/restapi/ Rooms 참고
  */
-@Document(collection = "room")
+@Document(collection = "rooms")
 class Room private constructor(private var name: String,
                                private var participantLimit: Number = DEFAULT_PARTICIPANTLIMIT.get() as Number,
                                private var inputLimit: Number = DEFAULT_INPUTLIMIT.get() as Number,

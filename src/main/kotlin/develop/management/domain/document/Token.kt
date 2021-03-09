@@ -10,7 +10,7 @@ import java.util.*
  * token 관련 정보를 저장하는 document class
  * https://software.intel.com/sites/products/documentation/webrtc/restapi/ Token 참고
  */
-@Document(collection = "token")
+@Document(collection = "tokens")
 class Token constructor(private val roomId: String,
                         private val serviceId: String,
                         private val user: String,

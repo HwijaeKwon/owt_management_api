@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document
  * service 관련 정보를 저장하는 document class
  * https://software.intel.com/sites/products/documentation/webrtc/restapi/ Services 참고
  */
-@Document(collection = "service")
+@Document(collection = "services")
 class Service private constructor(@Indexed(unique = true)private val name: String,
                                       private val key: String) {
     companion object {
