@@ -11,22 +11,22 @@ import org.json.JSONObject
 import org.springframework.stereotype.Service
 
 /**
- * 사용자 관련 비즈니스 로직을 담당하는 service class
+ * Streaming outs 관련 비즈니스 로직을 담당하는 service class
  */
 @Service
-class StreamingOutsService(private val rpcService: RpcService) {
+class StreamingOutService(private val rpcService: RpcService) {
 
     private fun guessProtocol(url: String): String {
-        if(url.startsWith("rtmp://")) {
-            return "rtmp"
+        return if(url.startsWith("rtmp://")) {
+            "rtmp"
         } else if(url.startsWith("rtsp://")) {
-            return "rtsp"
+            "rtsp"
         } else if(url.endsWith(".m3u8")) {
-            return "hls"
+            "hls"
         } else if(url.endsWith(".mpd")) {
-            return "dash"
+            "dash"
         } else {
-            return "unknown"
+            "unknown"
         }
     }
 
@@ -34,7 +34,7 @@ class StreamingOutsService(private val rpcService: RpcService) {
      * 새로운 Streaming out을 생성한다
      */
     suspend fun create(roomId: String, streamingOutRequest: StreamingOutRequest): StreamingOut {
-        val subReq = SubscriptionRequest()
+        val subReq = StreamingOutsSubscriptionRequest()
         subReq.type = "streaming"
         subReq.connection.protocol = streamingOutRequest.protocol?: guessProtocol(streamingOutRequest.url)
         subReq.connection.url = streamingOutRequest.url
@@ -48,17 +48,17 @@ class StreamingOutsService(private val rpcService: RpcService) {
         }
 
         val (status, result) = rpcService.addServerSideSubscription(roomId, JSONObject(Gson().toJson(subReq)).toString())
-        if(status == "error") throw IllegalStateException("Add streaming outs fail. $result")
+        if(status == "error") throw IllegalStateException("Add streaming out fail. $result")
 
         return Gson().fromJson(result, StreamingOut::class.java)
     }
 
     /**
-     * 특정 방의 모든 streaming out을 조회한다
+     * 특정 방의 모든 recording을 조회한다
      */
     suspend fun findAll(roomId: String): List<StreamingOut> {
         val (status, result) = rpcService.getSubscriptionsInRoom(roomId, "streaming")
-        if(status == "error") throw IllegalStateException("Get all streaming outs fail. $result")
+        if(status == "error") throw IllegalStateException("Get all streaming out fail. $result")
 
         val jsonArray = JSONArray()
         val streamingOutList = mutableListOf<JSONObject>()

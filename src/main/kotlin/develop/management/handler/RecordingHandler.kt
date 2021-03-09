@@ -1,10 +1,12 @@
 package develop.management.handler
 
 import develop.management.domain.dto.*
+import develop.management.service.RecordingService
 import develop.management.service.StreamingOutService
 import develop.management.util.error.AppError
 import develop.management.util.error.BadRequestError
 import develop.management.util.error.ErrorFoam
+import develop.management.validator.RecordingRequestValidator
 import develop.management.validator.StreamingOutRequestValidator
 import develop.management.validator.SubscriptionControlInfoValidator
 import io.swagger.v3.oas.annotations.Operation
@@ -24,20 +26,20 @@ import org.springframework.web.reactive.function.server.awaitBodyOrNull
 import org.springframework.web.reactive.function.server.bodyValueAndAwait
 
 /**
- * Streaming out 관련된 요청을 처리하는 handler function 모음
+ * Recording 관련된 요청을 처리하는 handler function 모음
  */
 @Component
-class StreamingOutHandler(private val streamingOutService: StreamingOutService) {
+class RecordingHandler(private val recordingService: RecordingService) {
 
     /**
-     * 모든 streaming out을 조회한다
+     * 모든 recording을 조회한다
      */
     @Operation(
-            operationId = "findAllStreamingOuts",
-            description = "find all streamingouts",
+            operationId = "findAllRecordings",
+            description = "find all recordings",
             parameters = [Parameter(name = "roomId", description = "Room id", required = true)],
             responses = [
-                ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", array = ArraySchema(schema = Schema(implementation = StreamingOut::class)))]),
+                ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", array = ArraySchema(schema = Schema(implementation = Recordings::class)))]),
                 ApiResponse(responseCode = "500", description = "App error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = AppError.example)])]),
             ]
     )
@@ -45,39 +47,39 @@ class StreamingOutHandler(private val streamingOutService: StreamingOutService) 
         val roomId = request.pathVariable("roomId")
 
         return try {
-            val streamingOut = streamingOutService.findAll(roomId)
-            ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(streamingOut)
+            val recordings = recordingService.findAll(roomId)
+            ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(recordings)
         } catch (e: IllegalStateException) {
             val message = e.message ?: "Rpc error"
-            val error = AppError("Find all streaming out fail: $message")
+            val error = AppError("Find all recordings fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
 
     /**
-     * 새로운 streaming out을 추가한다
+     * 새로운 recording을 추가한다
      */
     @Operation(
             operationId = "add",
-            description = "Add streaming out",
+            description = "Add recording",
             parameters = [Parameter(name = "roomId", description = "Room id", required = true)],
-            requestBody = RequestBody(content = [Content(mediaType = "application/json", schema = Schema(implementation = StreamingOutRequest::class, required = true))]),
+            requestBody = RequestBody(content = [Content(mediaType = "application/json", schema = Schema(implementation = RecordingRequest::class, required = true))]),
             responses = [
-                ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", schema = Schema(implementation = StreamingOut::class))]),
+                ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", schema = Schema(implementation = Recordings::class))]),
                 ApiResponse(responseCode = "400", description = "Bad request error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = BadRequestError.example)])]),
                 ApiResponse(responseCode = "500", description = "App error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = AppError.example)])]),
             ]
     )
     suspend fun add(request: ServerRequest): ServerResponse {
-        val validator = StreamingOutRequestValidator()
+        val validator = RecordingRequestValidator()
 
-        val streamingOutRequest = try { request.awaitBodyOrNull<StreamingOutRequest>() } catch (e: Exception) { null } ?: run {
+        val recordingRequest = try { request.awaitBodyOrNull<RecordingRequest>() } catch (e: Exception) { null } ?: run {
             val error = BadRequestError("Invalid request body: Request body is not valid.")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
-        val errors = BeanPropertyBindingResult(streamingOutRequest, PermissionUpdate::class.java.name)
-        validator.validate(streamingOutRequest, errors)
+        val errors = BeanPropertyBindingResult(recordingRequest, RecordingRequest::class.java.name)
+        validator.validate(recordingRequest, errors)
         if(errors.allErrors.isNotEmpty()) {
             var message = "Invalid request body: "
             errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
@@ -88,25 +90,25 @@ class StreamingOutHandler(private val streamingOutService: StreamingOutService) 
         val roomId = request.pathVariable("roomId")
 
         return try {
-            val streamingOut = streamingOutService.create(roomId, streamingOutRequest)
-            ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(streamingOut)
+            val recordings = recordingService.create(roomId, recordingRequest)
+            ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(recordings)
         } catch (e: IllegalStateException) {
             val message = e.message?: "Rpc error"
-            val error = AppError("Update participant fail: $message")
+            val error = AppError("Add recording fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
 
     /**
-     * Streaming out을 업데이트 한다
+     * Recording을 업데이트 한다
      */
     @Operation(
-            operationId = "updateStreamingOut",
-            description = "Update streaming out",
-            parameters = [Parameter(name = "roomId", description = "Room id", required = true), Parameter(name = "streamingOutId", description = "Streaming out id", required = true)],
+            operationId = "updateRecording",
+            description = "Update recording",
+            parameters = [Parameter(name = "roomId", description = "Room id", required = true), Parameter(name = "recordingId", description = "Recording id", required = true)],
             requestBody = RequestBody(content = [Content(mediaType = "application/json", schema = Schema(implementation = SubscriptionControlInfo::class, required = true))]),
             responses = [
-                ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", schema = Schema(implementation = StreamingOut::class))]),
+                ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", schema = Schema(implementation = Recordings::class))]),
                 ApiResponse(responseCode = "400", description = "Bad request error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = BadRequestError.example)])]),
                 ApiResponse(responseCode = "500", description = "App error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = AppError.example)])]),
             ]
@@ -129,40 +131,40 @@ class StreamingOutHandler(private val streamingOutService: StreamingOutService) 
         }
 
         val roomId = request.pathVariable("roomId")
-        val streamingOutId = request.pathVariable("streamingOutId")
+        val recordingId = request.pathVariable("recordingId")
 
         return try {
-            val streamingOut = streamingOutService.update(roomId, streamingOutId, subscriptionControlInfo)
+            val streamingOut = recordingService.update(roomId, recordingId, subscriptionControlInfo)
             ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(streamingOut)
         } catch (e: IllegalStateException) {
             val message = e.message ?: "Rpc error"
-            val error = AppError("Update participant fail: $message")
+            val error = AppError("Update recording fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
 
     /**
-     * 특정 streaming out을 제거한다
+     * 특정 recording을 제거한다
      */
     @Operation(
-            operationId = "deleteStreamingOut",
-            description = "Delete streaming out",
-            parameters = [Parameter(name = "roomId", description = "Room id", required = true), Parameter(name = "streamingOutId", description = "Streaming out id", required = true)],
+            operationId = "deleteRecording",
+            description = "Delete recording",
+            parameters = [Parameter(name = "roomId", description = "Room id", required = true), Parameter(name = "recordingId", description = "Recording Id", required = true)],
             responses = [
-                ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "text_plain", schema = Schema(implementation = String::class), examples = [ExampleObject(value = "StreamingOut deleted")])]),
+                ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "text_plain", schema = Schema(implementation = String::class), examples = [ExampleObject(value = "Recording deleted")])]),
                 ApiResponse(responseCode = "404", description = "Not found", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = BadRequestError.example)])]),
                 ApiResponse(responseCode = "500", description = "App error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = AppError.example)])]),
             ]
     )
     suspend fun delete(request: ServerRequest): ServerResponse {
         val roomId = request.pathVariable("roomId")
-        val streamingOutId = request.pathVariable("streamingOutId")
+        val recordingId = request.pathVariable("recordingId")
         return try {
-            streamingOutService.delete(roomId, streamingOutId)
-            ServerResponse.ok().bodyValueAndAwait("StreamingOut deleted")
+            recordingService.delete(roomId, recordingId)
+            ServerResponse.ok().bodyValueAndAwait("Recording deleted")
         } catch (e: IllegalStateException) {
             val message = e.message ?: ""
-            val error = AppError("Delete streaming out failed: $message")
+            val error = AppError("Delete recording failed: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }

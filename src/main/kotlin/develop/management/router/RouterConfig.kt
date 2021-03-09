@@ -37,6 +37,9 @@ class RouterConfig {
     private lateinit var streamingOutHandler: StreamingOutHandler
 
     @Autowired
+    private lateinit var recordingHandler: RecordingHandler
+
+    @Autowired
     private lateinit var serviceAuthenticator: ServiceAuthenticator
 
     @Autowired
@@ -189,6 +192,31 @@ class RouterConfig {
                 }
                 GET("", streamingOutHandler::findAll)
                 POST("", streamingOutHandler::add)
+            }
+            filter(serviceAuthenticator::authenticate)
+            filter(roomValidator::validate)
+        }
+    }
+
+    /**
+     * recording 관련 요청을 처리하는 router functions
+     */
+    @Bean
+    @RouterOperations(
+        RouterOperation(path = "/v1/rooms/{roomId}/recordings/{recordingId}", method = [RequestMethod.PATCH], headers = ["Authorization"], beanClass = RecordingHandler::class, beanMethod = "update"),
+        RouterOperation(path = "/v1/rooms/{roomId}/recordings/{recordingId}", method = [RequestMethod.DELETE], headers = ["Authorization"], beanClass = RecordingHandler::class, beanMethod = "delete"),
+        RouterOperation(path = "/v1/rooms/{roomId}/recordings", method = [RequestMethod.POST], headers = ["Authorization"], beanClass = RecordingHandler::class, beanMethod = "add"),
+        RouterOperation(path = "/v1/rooms/{roomId}/recordings", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = RecordingHandler::class, beanMethod = "findAll"),
+    )
+    fun recordingRouter(): RouterFunction<ServerResponse> = coRouter {
+        "/v1/rooms/{roomId}/recordings".nest {
+            accept(MediaType.APPLICATION_JSON).nest {
+                "/{recordingId}".nest {
+                    PATCH("", recordingHandler::update)
+                    DELETE("", recordingHandler::delete)
+                }
+                GET("", recordingHandler::findAll)
+                POST("", recordingHandler::add)
             }
             filter(serviceAuthenticator::authenticate)
             filter(roomValidator::validate)
