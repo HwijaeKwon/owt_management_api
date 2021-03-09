@@ -13,7 +13,4 @@ data class Sip(
     @Schema(description = "Username of SIP account", nullable = true)
     val username: String?,
     @Schema(description = "Password of SIP account", nullable = true)
-    val password: String?) {
-
-    //Todo: 암호화, 복호화하는 부분이 필요하다
-}
+    val password: String?)

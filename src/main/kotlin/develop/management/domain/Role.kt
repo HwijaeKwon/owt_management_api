@@ -15,7 +15,6 @@ data class Role(
     @Schema(description = "Role of subscription", implementation = Subscribe::class)
     val subscribe: Subscribe) {
 
-    //Todo: publish와 subscribe가 object가 아니라 map이어야하나?
     data class Publish(
         @Schema(description = "Whether the role can publish video")
         val video: Boolean,

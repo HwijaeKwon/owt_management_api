@@ -2,7 +2,6 @@ package develop.management.validator
 
 import develop.management.domain.DashParameters
 import develop.management.domain.HlsParameters
-import develop.management.domain.dto.StreamingInRequest
 import develop.management.domain.dto.StreamingOutRequest
 import org.springframework.validation.Errors
 import org.springframework.validation.Validator
@@ -21,8 +20,7 @@ class StreamingOutRequestValidator : Validator {
         if(streamingOutRequest.url.isBlank())
             errors.rejectValue("url", "field.invalid", "Invalid url.")
 
-        //Todo: parameters 형태 확인
-        if(streamingOutRequest.parameters != null && (streamingOutRequest.parameters !is HlsParameters || streamingOutRequest.parameters !is DashParameters))
+        if(streamingOutRequest.parameters != null)
             errors.rejectValue("parameters", "field.invalid", "Invalid parameters.")
     }
 }

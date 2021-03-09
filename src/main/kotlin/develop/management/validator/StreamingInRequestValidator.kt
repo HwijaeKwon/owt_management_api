@@ -1,6 +1,5 @@
 package develop.management.validator
 
-import develop.management.domain.dto.PermissionUpdate
 import develop.management.domain.dto.StreamingInRequest
 import org.springframework.validation.Errors
 import org.springframework.validation.Validator

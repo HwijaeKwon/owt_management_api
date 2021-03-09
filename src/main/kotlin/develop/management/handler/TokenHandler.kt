@@ -1,7 +1,6 @@
 package develop.management.handler
 
 import develop.management.auth.ServiceAuthenticator
-import develop.management.domain.document.Token
 import develop.management.domain.dto.TokenConfig
 import develop.management.service.TokenService
 import develop.management.util.error.AppError
@@ -34,7 +33,6 @@ class TokenHandler(private val tokenService: TokenService) {
 
     /**
      * 특정 service의 특정 room을 위한 token을 생성한다
-     * Todo: host를 request에서 직접 얻어서 사용하도록 수정해야한다
      */
     @Operation(
             operationId = "createToken",

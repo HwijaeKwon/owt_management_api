@@ -16,7 +16,6 @@ import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import org.json.JSONObject
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.validation.BeanPropertyBindingResult
@@ -30,8 +29,6 @@ import java.lang.IllegalArgumentException
  */
 @Component
 class StreamHandler(private val streamService: StreamService) {
-
-    //Todo: Stream data도 JSONObejct가 아니라 data class로 관리해야 한다
 
     /**
      * 특정 room에 속한 특정 stream을 반환한다
@@ -49,7 +46,6 @@ class StreamHandler(private val streamService: StreamService) {
     suspend fun findOne(request: ServerRequest): ServerResponse {
         val roomId = request.pathVariable("roomId")
         val streamId = request.pathVariable("streamId")
-        //Todo: error exception 처리하기
         return try {
             val result = streamService.findOne(roomId, streamId)
             ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(result)

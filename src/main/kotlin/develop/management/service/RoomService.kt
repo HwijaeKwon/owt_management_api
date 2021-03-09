@@ -2,7 +2,6 @@ package develop.management.service
 
 import com.google.gson.Gson
 import com.mongodb.client.result.DeleteResult
-import develop.management.domain.Sip
 import develop.management.domain.ViewVideo
 import develop.management.domain.document.Room
 import develop.management.domain.dto.UpdateOptions
@@ -12,9 +11,7 @@ import develop.management.repository.mongo.RetryOperation
 import develop.management.rpc.RpcService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.reactive.TransactionalOperator
-import org.springframework.transaction.reactive.executeAndAwait
 import kotlin.collections.ArrayList
-import kotlin.reflect.full.memberProperties
 
 /**
  * Room 관련 비즈니스 로직을 수행하는 서비스

@@ -40,7 +40,6 @@ class StreamingOutService(private val rpcService: RpcService) {
         subReq.connection.url = streamingOutRequest.url
         subReq.media = streamingOutRequest.media
 
-        //Todo: Json string 형태 확인하기
         if(subReq.connection.protocol === "hls") {
             subReq.connection.parameters = streamingOutRequest.parameters?: HlsParameters("PUT", 2, 5)
         } else if(subReq.connection.protocol == "dash") {

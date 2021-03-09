@@ -1,6 +1,5 @@
 package develop.management.domain
 
-import com.google.gson.Gson
 import io.swagger.v3.oas.annotations.media.Schema
 
 data class MediaInfo(

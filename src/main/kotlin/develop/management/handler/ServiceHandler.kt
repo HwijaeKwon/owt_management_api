@@ -61,7 +61,6 @@ class ServiceHandler(private val serviceService: ServiceService) {
 
         val service = Service.create(serviceConfig)
 
-        //Todo: error exception 처리하기
         return try{
             val result = serviceService.create(service)
             ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(ServiceInfo(result.getId(), result.getName(), result.getKey()))
