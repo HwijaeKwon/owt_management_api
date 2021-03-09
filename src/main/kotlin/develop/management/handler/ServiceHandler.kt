@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.validation.BeanPropertyBindingResult
@@ -28,6 +29,7 @@ import org.springframework.web.reactive.function.server.bodyValueAndAwait
  */
 @Component
 class ServiceHandler(private val serviceService: ServiceService) {
+    private final val logger = LoggerFactory.getLogger(this.javaClass.name)
 
     /**
      * 새로운 service를 db에 생성한다
@@ -47,6 +49,8 @@ class ServiceHandler(private val serviceService: ServiceService) {
 
         val serviceConfig = try { request.awaitBodyOrNull<ServiceConfig>() } catch (e: Exception) { null } ?: run {
             val error = BadRequestError("Invalid request body: Required arguments must not be null")
+            logger.info("Create service fail. Invalid request body: Required arguments must not be null")
+            println("Create service fail. Invalid request body: Required arguments must not be null")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -56,6 +60,8 @@ class ServiceHandler(private val serviceService: ServiceService) {
             var message = "Invalid request body: "
             errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
             val error = BadRequestError(message)
+            logger.info("Create service fail. Invalid request body: $message")
+            println("Create service fail. Invalid request body: $message")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -67,6 +73,8 @@ class ServiceHandler(private val serviceService: ServiceService) {
         } catch (e: IllegalStateException) {
             val message = e.message?: "Service already exists"
             val error = AppError("Create service fail: $message")
+            logger.info("Create service fail: $message")
+            println("Create service fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -91,6 +99,8 @@ class ServiceHandler(private val serviceService: ServiceService) {
             ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(ServiceInfo(result.getId(), result.getName(), result.getKey()))
         } catch (e: IllegalArgumentException) {
             val error = NotFoundError("Service not found")
+            logger.info("Find one service fail")
+            println("Find one service fail")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -125,15 +135,23 @@ class ServiceHandler(private val serviceService: ServiceService) {
     suspend fun delete(request: ServerRequest): ServerResponse {
         val serviceId = request.pathVariable("serviceId")
         return try {
-            if(serviceService.delete(serviceId).deletedCount < 1) throw IllegalArgumentException("Service not found")
+            if(serviceService.delete(serviceId).deletedCount < 1) {
+                logger.info("Delete service fail: Service not found")
+                println("Delete service fail: Service not found")
+                throw IllegalArgumentException("Service not found")
+            }
             ok().contentType(MediaType.TEXT_PLAIN).bodyValueAndAwait("Service deleted")
         } catch (e: IllegalStateException) {
             val message = e.message?: ""
             val error = AppError("Delete service fail: $message")
+            logger.info("Delete service fail: $message")
+            println("Delete service fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         } catch (e: IllegalArgumentException) {
             val message = e.message?: ""
             val error = NotFoundError(message)
+            logger.info("Delete service fail. Not found: $message")
+            println("Delete service fail. Not found: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }

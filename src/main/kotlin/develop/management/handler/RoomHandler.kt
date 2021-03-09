@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.validation.BeanPropertyBindingResult
@@ -32,6 +33,7 @@ import org.springframework.web.reactive.function.server.bodyValueAndAwait
  */
 @Component
 class RoomHandler(private val roomService: RoomService) {
+    private final val logger = LoggerFactory.getLogger(this.javaClass.name)
 
     /**
      * 새로운 room을 db에 생성한다
@@ -51,6 +53,8 @@ class RoomHandler(private val roomService: RoomService) {
 
         val authData = try { request.attributes()["authData"] as ServiceAuthenticator.AuthData? } catch(e: Exception) { null } ?: run {
             val error = AppError("Create room fail: AuthData is invalid")
+            logger.info("Create room fail. AuthData is invalid")
+            println("Create room fail. AuthData is invalid")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -58,6 +62,8 @@ class RoomHandler(private val roomService: RoomService) {
 
         val roomConfig = try { request.awaitBodyOrNull<RoomConfig>() } catch (e: Exception) { null } ?: run {
             val error = BadRequestError("Invalid request body: Request body is not valid.")
+            logger.info("Create room fail. Invalid request body: Request body is not valid.")
+            println("Create room fail. Invalid request body: Request body is not valid.")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -67,6 +73,8 @@ class RoomHandler(private val roomService: RoomService) {
             var message = "Invalid request body: "
             errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
             val error = BadRequestError(message)
+            logger.info("Create room fail. Invalid request body: $message")
+            println("Create room fail. Invalid request body: $message")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -77,6 +85,8 @@ class RoomHandler(private val roomService: RoomService) {
         } catch (e: IllegalStateException) {
             val message = e.message?: ""
             val error = AppError("Create room failed: $message")
+            logger.info("Create room fail: $message")
+            println("Create room fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -96,7 +106,9 @@ class RoomHandler(private val roomService: RoomService) {
     )
     suspend fun findOne(request: ServerRequest): ServerResponse {
         val authData = try { request.attributes()["authData"] as ServiceAuthenticator.AuthData? } catch(e: Exception) { null } ?: run {
-            val error = AppError("Create room fail: AuthData is invalid")
+            val error = AppError("Find one room fail: AuthData is invalid")
+            logger.info("Find one room fail. AuthData is invalid")
+            println("Find one room fail. AuthData is invalid")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -110,6 +122,8 @@ class RoomHandler(private val roomService: RoomService) {
         } catch (e: IllegalArgumentException) {
             val message = e.message?: "Not found error"
             val error = NotFoundError(message)
+            logger.info("Find one room fail. Not found: $message")
+            println("Find one room fail. Not found: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -129,6 +143,8 @@ class RoomHandler(private val roomService: RoomService) {
     suspend fun findAll(request: ServerRequest): ServerResponse {
         val authData = try { request.attributes()["authData"] as ServiceAuthenticator.AuthData? } catch(e: Exception) { null } ?: run {
             val error = AppError("Find all rooms fail: AuthData is invalid")
+            logger.info("Find all rooms fail. AuthData is invalid")
+            println("Find all rooms fail. AuthData is invalid")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -142,6 +158,8 @@ class RoomHandler(private val roomService: RoomService) {
         } catch (e: IllegalArgumentException) {
             val message = e.message?: "Not found error"
             val error = NotFoundError(message)
+            logger.info("Find all rooms fail. Not found: $message")
+            println("Find all rooms fail. Not found: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -162,7 +180,9 @@ class RoomHandler(private val roomService: RoomService) {
     )
     suspend fun update(request: ServerRequest): ServerResponse {
         val authData = try { request.attributes()["authData"] as ServiceAuthenticator.AuthData? } catch(e: Exception) { null } ?: run {
-            val error = AppError("Find all rooms fail: AuthData is invalid")
+            val error = AppError("Update room fail: AuthData is invalid")
+            logger.info("Update room fail. AuthData is invalid")
+            println("Update room fail. AuthData is invalid")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -172,6 +192,8 @@ class RoomHandler(private val roomService: RoomService) {
 
         val update = try { request.awaitBodyOrNull<UpdateOptions>() } catch (e: Exception) { null } ?: run {
             val error = BadRequestError("Invalid request body: Request body is not valid.")
+            logger.info("Update room fail. Invalid request body: Request body is not valid.")
+            println("Update room fail. Invalid request body: Request body is not valid.")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -181,10 +203,14 @@ class RoomHandler(private val roomService: RoomService) {
         } catch (e: IllegalStateException) {
             val message = e.message?: ""
             val error = AppError("Update room failed: $message")
+            logger.info("Update room fail: $message")
+            println("Update room fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         } catch (e: IllegalArgumentException) {
             val message = e.message?: ""
             val error = NotFoundError(message)
+            logger.info("Update room fail. Not found: $message")
+            println("Update room fail. Not found: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -204,7 +230,9 @@ class RoomHandler(private val roomService: RoomService) {
     )
     suspend fun delete(request: ServerRequest): ServerResponse {
         val authData = try { request.attributes()["authData"] as ServiceAuthenticator.AuthData? } catch(e: Exception) { null } ?: run {
-            val error = AppError("Find all rooms fail: AuthData is invalid")
+            val error = AppError("Delete room fail: AuthData is invalid")
+            logger.info("Delete room fail. AuthData is invalid")
+            println("Delete room fail. AuthData is invalid")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -216,6 +244,8 @@ class RoomHandler(private val roomService: RoomService) {
         } catch (e: IllegalArgumentException) {
             val message = e.message?: ""
             val error = NotFoundError(message)
+            logger.info("Delete room fail. Not found: $message")
+            println("Delete room fail. Not found: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }

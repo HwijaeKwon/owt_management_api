@@ -4,6 +4,7 @@ import develop.management.domain.document.Service
 import develop.management.repository.ServiceRepository
 import develop.management.util.cipher.Cipher
 import develop.management.util.error.AuthenticationError
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.*
@@ -19,6 +20,7 @@ import java.util.*
 
 @Component
 class ServiceAuthenticator(private val serviceRepository: ServiceRepository) {
+    private final val logger = LoggerFactory.getLogger(this.javaClass.name)
 
     /**
      * 인증된 데이터를 handler function에게 전달하기 위해 사용하는 클래스
@@ -33,23 +35,36 @@ class ServiceAuthenticator(private val serviceRepository: ServiceRepository) {
 
         //Authorization header가 없을 경우 client에게 error 메세지를 보낸다
         val authHeader = request.headers().header("Authorization").firstOrNull()
-                ?: return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
+                ?: run {
+                    logger.info("Authorization header not found")
+                    println("Authorization header not found")
+                    return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody) }
 
         val parsedAuthHeader = parseAuthHeader(authHeader)
 
         //Authorization header 안에 serviceId가 없을 경우 client에게 error 메세지를 보낸다
         val serviceId = parsedAuthHeader["serviceid"]
-                ?: return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
+                ?: run {
+                    logger.info("Service id not found in authorization header")
+                    println("Service id not found in authorization header")
+                    return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody) }
 
         //service가 존재하지 않을 경우 client에게 error 메세지를 보낸다
         //service id는 null이 될 수 없다
         val serviceData = serviceRepository.findById(serviceId)
-                ?: return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
+                ?: run {
+                    logger.info("Service not found")
+                    println("Service not found")
+                    return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody) }
 
         var key = serviceData.getKey()
         key = if(serviceData.getEncrypted()) Cipher.decrypt(key) else key
 
-        if(!checkSignature(parsedAuthHeader, key)) return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
+        if(!checkSignature(parsedAuthHeader, key)) {
+            logger.info("CheckSignature fail")
+            println("CheckSignature fail")
+            return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
+        }
 
         //Todo: client가 user와 role을 보낼 것인지, 보낸다면 어떤 방식으로 인코딩해둘 것인지 결정해야 한다
         request.attributes()["authData"] = AuthData(serviceData, parsedAuthHeader["user"], parsedAuthHeader["role"])

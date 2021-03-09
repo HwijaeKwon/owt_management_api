@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.validation.BeanPropertyBindingResult
@@ -29,6 +30,7 @@ import org.springframework.web.reactive.function.server.bodyValueAndAwait
  */
 @Component
 class ParticipantHandler(private val participantService: ParticipantService) {
+    private final val logger = LoggerFactory.getLogger(this.javaClass.name)
 
     /**
      * 개별 사용자를 조회한다
@@ -52,11 +54,14 @@ class ParticipantHandler(private val participantService: ParticipantService) {
             ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(participantDetail)
         } catch (e: IllegalStateException) {
             val message = e.message ?: "Rpc error"
-            val error = AppError("Find all participants fail: $message")
+            val error = AppError("Find one participant fail: $message")
+            logger.info("Fail one participant fail: $message")
+            println("Fail one participant fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         } catch (e: IllegalArgumentException) {
             val message = e.message?: ""
             val error = NotFoundError(message)
+            logger.info("Not found: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -83,10 +88,14 @@ class ParticipantHandler(private val participantService: ParticipantService) {
         } catch (e: IllegalStateException) {
             val message = e.message?: "Rpc error"
             val error = AppError("Find all participants fail: $message")
+            logger.info("Find all participants fail: $message")
+            println("Find all participants fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         } catch (e: IllegalArgumentException) {
             val message = e.message?: ""
             val error = NotFoundError(message)
+            logger.info("Find all participants fail. Not found: $message")
+            println("Find all participants fail. Not found: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -111,6 +120,8 @@ class ParticipantHandler(private val participantService: ParticipantService) {
 
         val permissionUpdate = try { request.awaitBodyOrNull<PermissionUpdate>() } catch (e: Exception) { null } ?: run {
             val error = BadRequestError("Invalid request body: Request body is not valid.")
+            logger.info("Update participant fail. Invalid request body: Request body is not valid.")
+            println("Update participant fail. Invalid request body: Request body is not valid.")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -120,6 +131,8 @@ class ParticipantHandler(private val participantService: ParticipantService) {
             var message = "Invalid request body: "
             errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
             val error = BadRequestError(message)
+            logger.info("Update participant fail. Invalid request body: $message")
+            println("Update participant fail. Invalid request body: $message")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -132,10 +145,14 @@ class ParticipantHandler(private val participantService: ParticipantService) {
         } catch (e: IllegalStateException) {
             val message = e.message?: "Rpc error"
             val error = AppError("Update participant fail: $message")
+            logger.info("Update participant fail: $message")
+            println("Update participant fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         } catch (e: IllegalArgumentException) {
             val message = e.message?: ""
             val error = NotFoundError(message)
+            logger.info("Update participant fail. Not found: $message")
+            println("Update participant fail. Not found: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -162,10 +179,14 @@ class ParticipantHandler(private val participantService: ParticipantService) {
         } catch (e: IllegalStateException) {
             val message = e.message?: ""
             val error = AppError("Delete participant failed: $message")
+            logger.info("Delete participant failed: $message")
+            println("Delete participant failed: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         } catch (e: IllegalArgumentException) {
             val message = e.message?: ""
             val error = NotFoundError(message)
+            logger.info("Delete participant failed. Not found: $message")
+            println("Delete participant failed. Not found: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }

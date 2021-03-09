@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.validation.BeanPropertyBindingResult
@@ -29,6 +30,7 @@ import java.lang.IllegalArgumentException
  */
 @Component
 class StreamHandler(private val streamService: StreamService) {
+    private final val logger = LoggerFactory.getLogger(this.javaClass.name)
 
     /**
      * 특정 room에 속한 특정 stream을 반환한다
@@ -51,10 +53,14 @@ class StreamHandler(private val streamService: StreamService) {
             ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(result)
         } catch (e: IllegalArgumentException) {
             val error = NotFoundError("Stream not found")
+            logger.info("Find one stream fail. Not found")
+            println("Find one stream fail. Not found")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         } catch (e: IllegalStateException) {
             val message = e.message?: ""
             val error = AppError("Fail to find one stream. Reason : $message")
+            logger.info("Fail to find one stream. Reason : $message")
+            println("Fail to find one stream. Reason : $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -79,6 +85,8 @@ class StreamHandler(private val streamService: StreamService) {
         } catch (e: IllegalStateException) {
             val message = e.message?: ""
             val error = AppError("Fail to find all streams. Reason : $message")
+            logger.info("Fail to find all streams. Reason : $message")
+            println("Fail to find all streams. Reason : $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -105,6 +113,8 @@ class StreamHandler(private val streamService: StreamService) {
 
         val streamUpdate = try { request.awaitBodyOrNull<StreamUpdate>() } catch (e: Exception) { null } ?: run {
             val error = BadRequestError("Invalid request body: Request body is not valid.")
+            logger.info("Fail to update stream. Invalid request body: Request body is not valid.")
+            println("Fail to update stream. Invalid request body: Request body is not valid.")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -114,6 +124,8 @@ class StreamHandler(private val streamService: StreamService) {
             var message = "Invalid request body: "
             errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
             val error = BadRequestError(message)
+            logger.info("Fail to update stream. Invalid request body: $message")
+            println("Fail to update stream. Invalid request body: $message")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -122,6 +134,8 @@ class StreamHandler(private val streamService: StreamService) {
             ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(result)
         } catch (e: IllegalStateException) {
             val error = NotFoundError("Stream not found")
+            logger.info("Fail to update stream. Not found")
+            println("Fail to update stream. Not found")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -147,6 +161,8 @@ class StreamHandler(private val streamService: StreamService) {
         } catch (e: IllegalStateException) {
             val message = e.message?: ""
             val error = AppError("Fail to delete streams. Reason : $message")
+            logger.info("Fail to delete stream. Reason : $message")
+            println("Fail to delete stream. Reason : $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -171,6 +187,8 @@ class StreamHandler(private val streamService: StreamService) {
 
         val streamingInRequest = try { request.awaitBodyOrNull<StreamingInRequest>() } catch (e: Exception) { null } ?: run {
             val error = BadRequestError("Invalid request body: Request body is not valid.")
+            logger.info("Fail to add streaming in. Invalid request body: Request body is not valid.")
+            println("Fail to add streaming in. Invalid request body: Request body is not valid.")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -180,6 +198,8 @@ class StreamHandler(private val streamService: StreamService) {
             var message = "Invalid request body: "
             errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
             val error = BadRequestError(message)
+            logger.info("Fail to add streaming in. Invalid request body: $message")
+            println("Fail to add streaming in. Invalid request body: $message")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -191,6 +211,8 @@ class StreamHandler(private val streamService: StreamService) {
         } catch (e: IllegalStateException) {
             val message = e.message?: ""
             val error = AppError("Fail to add streaming in. Reason : $message")
+            logger.info("Fail to add streaming in. Reason : $message")
+            println("Fail to add streaming in. Reason : $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }

@@ -47,3 +47,8 @@ mongodb:
     times: 5
     initialDelay: 100
     maxDelay: 1000
+
+logging:
+  level:
+    org.springframework: INFO
+    org.springframework.web: DEBUG

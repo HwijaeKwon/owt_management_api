@@ -7,6 +7,7 @@ import develop.management.rpc.RpcService
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 /**
@@ -14,13 +15,14 @@ import org.springframework.stereotype.Service
  */
 @Service
 class ParticipantService(private val rpcService: RpcService) {
-
     /**
      * Conference에서 사용자를 조회한다
      */
     suspend fun findOne(roomId: String, participantId: String): ParticipantDetail {
         val (status, result) = rpcService.getParticipantsInRoom(roomId)
-        if(status == "error") throw IllegalStateException("Get participants in room fail. $result")
+        if(status == "error") {
+            throw IllegalStateException("Get participants in room fail. $result")
+        }
 
         val jsonArray = JSONArray()
         val participantArray = mutableListOf<JSONObject>()

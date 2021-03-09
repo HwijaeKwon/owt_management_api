@@ -3,6 +3,7 @@ package develop.management.auth
 import develop.management.ManagementInitializer
 import develop.management.util.error.AppError
 import develop.management.util.error.AuthorizationError
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.DependsOn
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
@@ -20,12 +21,15 @@ import org.springframework.web.reactive.function.server.bodyValueAndAwait
 @Component
 @DependsOn(value = ["managementInitializer"])
 class ServiceAuthorizer(private val initializer: ManagementInitializer) {
+    private final val logger = LoggerFactory.getLogger(this.javaClass.name)
 
     /**
      * service를 대상으로 한 요청일 경우 이에 대한 권한을 확인한다
      */
     suspend fun serviceAuthorize(request: ServerRequest, next: suspend (ServerRequest) -> (ServerResponse)): ServerResponse {
         val authData = try { request.attributes()["authData"] as ServiceAuthenticator.AuthData? } catch(e: Exception) { null } ?: run {
+            logger.info("AuthData is invalid")
+            println("AuthData is invalid")
             val error = AppError("ServiceAuthorizer serviceAuthorize fail: AuthData is invalid")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
@@ -41,6 +45,8 @@ class ServiceAuthorizer(private val initializer: ManagementInitializer) {
 
         if((superServiceId == authServiceId) || (authServiceId == serviceId)) {
             if(request.method() == HttpMethod.DELETE && serviceId == superServiceId) {
+                logger.info("Permission denied: Super service deletion is not permitted")
+                println("Permission denied: Super service deletion is not permitted")
                 val error = AuthorizationError("Permission denied: Super service deletion is not permitted")
                 return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
             }
@@ -48,6 +54,8 @@ class ServiceAuthorizer(private val initializer: ManagementInitializer) {
         }
 
         val error = AuthorizationError("Permission denied")
+        logger.info("Permission denied")
+        println("Permission denied")
         return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
     }
 }

@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.validation.BeanPropertyBindingResult
@@ -30,6 +31,7 @@ import org.springframework.web.reactive.function.server.bodyValueAndAwait
  */
 @Component
 class TokenHandler(private val tokenService: TokenService) {
+    private final val logger = LoggerFactory.getLogger(this.javaClass.name)
 
     /**
      * 특정 service의 특정 room을 위한 token을 생성한다
@@ -51,6 +53,8 @@ class TokenHandler(private val tokenService: TokenService) {
 
         val authData = try { request.attributes()["authData"] as ServiceAuthenticator.AuthData? } catch(e: Exception) { null } ?: run {
             val error = AppError("Create token fail: AuthData is invalid")
+            logger.info("Create token fail: AuthData is invalid")
+            println("Create token fail: AuthData is invalid")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -58,6 +62,8 @@ class TokenHandler(private val tokenService: TokenService) {
         val roomId = request.pathVariable("roomId")
         val tokenConfig = try { request.awaitBodyOrNull<TokenConfig>() } catch (e: Exception) { null } ?: run {
             val error = BadRequestError("Invalid request body: Required arguments must not be null")
+            logger.info("Create token fail. Invalid request body: Required arguments must not be null")
+            println("Create token fail. Invalid request body: Required arguments must not be null")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -67,6 +73,8 @@ class TokenHandler(private val tokenService: TokenService) {
             var message = "Invalid request body: "
             errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
             val error = BadRequestError(message)
+            logger.info("Create token fail. Invalid request body: $message")
+            println("Create token fail. Invalid request body: $message")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -80,14 +88,20 @@ class TokenHandler(private val tokenService: TokenService) {
         } catch (e: IllegalStateException) {
             val message = e.message?: ""
             val error = AppError("Create token fail: $message")
+            logger.info("Create token fail. $message")
+            println("Create token fail. $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         } catch (e: IllegalArgumentException) {
             val message = e.message?: ""
             val error = NotFoundError(message)
+            logger.info("Create token fail. Not found: $message")
+            println("Create token fail. Not found: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         } catch (e: Exception) {
             val message = e.message?: ""
             val error = BadRequestError(message)
+            logger.info("Create token fail: $message")
+            println("Create token fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
