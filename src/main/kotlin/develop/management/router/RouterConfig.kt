@@ -40,6 +40,12 @@ class RouterConfig {
     private lateinit var recordingHandler: RecordingHandler
 
     @Autowired
+    private lateinit var sipCallHandler: SipCallHandler
+
+    @Autowired
+    private lateinit var analyticsHandler: AnalyticsHandler
+
+    @Autowired
     private lateinit var serviceAuthenticator: ServiceAuthenticator
 
     @Autowired
@@ -217,6 +223,54 @@ class RouterConfig {
                 }
                 GET("", recordingHandler::findAll)
                 POST("", recordingHandler::add)
+            }
+            filter(serviceAuthenticator::authenticate)
+            filter(roomValidator::validate)
+        }
+    }
+
+    /**
+     * sipcall 관련 요청을 처리하는 router functions
+     */
+    @Bean
+    @RouterOperations(
+        RouterOperation(path = "/v1/rooms/{roomId}/sipcalls/{sipCallId}", method = [RequestMethod.PATCH], headers = ["Authorization"], beanClass = SipCallHandler::class, beanMethod = "update"),
+        RouterOperation(path = "/v1/rooms/{roomId}/sipcalls/{sipCallId}", method = [RequestMethod.DELETE], headers = ["Authorization"], beanClass = SipCallHandler::class, beanMethod = "delete"),
+        RouterOperation(path = "/v1/rooms/{roomId}/sipcalls", method = [RequestMethod.POST], headers = ["Authorization"], beanClass = SipCallHandler::class, beanMethod = "add"),
+        RouterOperation(path = "/v1/rooms/{roomId}/sipcalls", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = SipCallHandler::class, beanMethod = "findAll"),
+    )
+    fun sipCallRouter(): RouterFunction<ServerResponse> = coRouter {
+        "/v1/rooms/{roomId}/sipcalls".nest {
+            accept(MediaType.APPLICATION_JSON).nest {
+                "/{sipCallId}".nest {
+                    PATCH("", sipCallHandler::update)
+                    DELETE("", sipCallHandler::delete)
+                }
+                GET("", sipCallHandler::findAll)
+                POST("", sipCallHandler::add)
+            }
+            filter(serviceAuthenticator::authenticate)
+            filter(roomValidator::validate)
+        }
+    }
+
+    /**
+     * analytics 관련 요청을 처리하는 router functions
+     */
+    @Bean
+    @RouterOperations(
+        RouterOperation(path = "/v1/rooms/{roomId}/analytics/{analyticsId}", method = [RequestMethod.DELETE], headers = ["Authorization"], beanClass = SipCallHandler::class, beanMethod = "delete"),
+        RouterOperation(path = "/v1/rooms/{roomId}/analytics", method = [RequestMethod.POST], headers = ["Authorization"], beanClass = SipCallHandler::class, beanMethod = "add"),
+        RouterOperation(path = "/v1/rooms/{roomId}/analytics", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = SipCallHandler::class, beanMethod = "findAll"),
+    )
+    fun analyticsRouter(): RouterFunction<ServerResponse> = coRouter {
+        "/v1/rooms/{roomId}/analytics".nest {
+            accept(MediaType.APPLICATION_JSON).nest {
+                "/{analyticsId}".nest {
+                    DELETE("", analyticsHandler::delete)
+                }
+                GET("", analyticsHandler::findAll)
+                POST("", analyticsHandler::add)
             }
             filter(serviceAuthenticator::authenticate)
             filter(roomValidator::validate)

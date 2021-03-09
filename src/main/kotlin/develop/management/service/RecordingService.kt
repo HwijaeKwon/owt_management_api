@@ -1,8 +1,6 @@
 package develop.management.service
 
 import com.google.gson.Gson
-import develop.management.domain.DashParameters
-import develop.management.domain.HlsParameters
 import develop.management.domain.dto.*
 import develop.management.rpc.RpcService
 import org.json.JSONArray

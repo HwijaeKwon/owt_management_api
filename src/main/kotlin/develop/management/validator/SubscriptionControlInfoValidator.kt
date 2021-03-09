@@ -18,8 +18,6 @@ class SubscriptionControlInfoValidator : Validator {
 
         if(subscriptionControlInfo.op != "replace")
             errors.rejectValue("op", "field.invalid", "Invalid op.")
-        if(subscriptionControlInfo.path.isBlank())
-            errors.rejectValue("url", "field.invalid", "Invalid url.")
         when(subscriptionControlInfo.path) {
             "/media/audio/from" -> {}
             "/media/video/from" -> {}
