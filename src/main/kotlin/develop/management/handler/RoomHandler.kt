@@ -195,6 +195,7 @@ class RoomHandler(private val roomService: RoomService) {
     @Operation(
             operationId = "deleteRoom",
             description = "Delete room",
+            parameters = [Parameter(name = "roomId", description = "Room id", required = true)],
             responses = [
                 ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "text_plain", schema = Schema(implementation = String::class), examples = [ExampleObject(value = "Room deleted")])]),
                 ApiResponse(responseCode = "404", description = "Not found", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = BadRequestError.example)])]),

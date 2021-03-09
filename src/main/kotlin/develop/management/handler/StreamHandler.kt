@@ -39,7 +39,7 @@ class StreamHandler(private val streamService: StreamService) {
     @Operation(
             operationId = "findOneStream",
             description = "find one stream",
-            parameters = [Parameter(name = "roomId", description = "Room id", required = true), Parameter(name = "participantId", description = "Participant id", required = true)],
+            parameters = [Parameter(name = "roomId", description = "Room id", required = true), Parameter(name = "streamId", description = "Stream id", required = true)],
             responses = [
                 ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", schema = Schema(implementation = StreamInfo::class))]),
                 ApiResponse(responseCode = "404", description = "Not found", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = NotFoundError.exampleService)])]),
@@ -93,7 +93,7 @@ class StreamHandler(private val streamService: StreamService) {
     @Operation(
             operationId = "updateStream",
             description = "Update stream",
-            parameters = [Parameter(name = "roomId", description = "Room id", required = true), Parameter(name = "participantId", description = "Participant id", required = true)],
+            parameters = [Parameter(name = "roomId", description = "Room id", required = true), Parameter(name = "streamId", description = "Stream id", required = true)],
             requestBody = RequestBody(content = [Content(mediaType = "application/json", schema = Schema(implementation = StreamUpdate::class, required = true))]),
             responses = [
                 ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", schema = Schema(implementation = StreamInfo::class))]),
@@ -136,6 +136,7 @@ class StreamHandler(private val streamService: StreamService) {
     @Operation(
             operationId = "deleteStream",
             description = "Delete stream",
+            parameters = [Parameter(name = "roomId", description = "Room id", required = true), Parameter(name = "streamId", description = "Stream id", required = true)],
             responses = [
                 ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "text_plain", schema = Schema(implementation = String::class), examples = [ExampleObject(value = "Stream deleted")])]),
                 ApiResponse(responseCode = "500", description = "App error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = AppError.example)])]),
@@ -158,10 +159,11 @@ class StreamHandler(private val streamService: StreamService) {
      * 새로운 streaming in을 추가한다
      */
     @Operation(
-        operationId = "addStreamingIn",
-        description = "Add streaming in",
-        responses = [
-            ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "text_plain", schema = Schema(implementation = String::class), examples = [ExampleObject(value = "Stream deleted")])]),
+            operationId = "addStreamingIn",
+            description = "Add streaming in",
+            parameters = [Parameter(name = "roomId", description = "Room id", required = true)],
+            responses = [
+            ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "text_plain", schema = Schema(implementation = StreamInfo::class))]),
             ApiResponse(responseCode = "400", description = "Bad request error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = BadRequestError.example)])]),
             ApiResponse(responseCode = "500", description = "App error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = AppError.example)])]),
         ]

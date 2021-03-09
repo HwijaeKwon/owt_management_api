@@ -34,6 +34,9 @@ class RouterConfig {
     private lateinit var streamHandler: StreamHandler
 
     @Autowired
+    private lateinit var streamingOutHandler: StreamingOutHandler
+
+    @Autowired
     private lateinit var serviceAuthenticator: ServiceAuthenticator
 
     @Autowired
@@ -161,6 +164,31 @@ class RouterConfig {
                     POST("", streamHandler::addStreamingIn)
                     DELETE("/{streamId}", streamHandler::delete)
                 }
+            }
+            filter(serviceAuthenticator::authenticate)
+            filter(roomValidator::validate)
+        }
+    }
+
+    /**
+     * streaming out 관련 요청을 처리하는 router functions
+     */
+    @Bean
+    @RouterOperations(
+            RouterOperation(path = "/v1/rooms/{roomId}/streaming-outs/{streamId}", method = [RequestMethod.PATCH], headers = ["Authorization"], beanClass = StreamingOutHandler::class, beanMethod = "update"),
+            RouterOperation(path = "/v1/rooms/{roomId}/streaming-outs/{streamId}", method = [RequestMethod.DELETE], headers = ["Authorization"], beanClass = StreamingOutHandler::class, beanMethod = "delete"),
+            RouterOperation(path = "/v1/rooms/{roomId}/streaming-outs", method = [RequestMethod.POST], headers = ["Authorization"], beanClass = StreamingOutHandler::class, beanMethod = "add"),
+            RouterOperation(path = "/v1/rooms/{roomId}/streaming-outs", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = StreamingOutHandler::class, beanMethod = "findAll"),
+    )
+    fun streamingOutRouter(): RouterFunction<ServerResponse> = coRouter {
+        "/v1/rooms/{roomId}/streaming-outs".nest {
+            accept(MediaType.APPLICATION_JSON).nest {
+                "/{streamingOutId}".nest {
+                        PATCH("", streamingOutHandler::update)
+                        DELETE("", streamingOutHandler::delete)
+                }
+                GET("", streamingOutHandler::findAll)
+                POST("", streamingOutHandler::add)
             }
             filter(serviceAuthenticator::authenticate)
             filter(roomValidator::validate)

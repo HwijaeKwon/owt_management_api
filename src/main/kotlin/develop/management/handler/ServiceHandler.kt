@@ -116,6 +116,7 @@ class ServiceHandler(private val serviceService: ServiceService) {
     @Operation(
             operationId = "deleteService",
             description = "Delete service",
+            parameters = [Parameter(name = "serviceId", description = "Service id", required = true)],
             responses = [
                 ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "text_plain", schema = Schema(implementation = String::class), examples = [ExampleObject(value = "Service deleted")])]),
                 ApiResponse(responseCode = "404", description = "Not found", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = BadRequestError.example)])]),

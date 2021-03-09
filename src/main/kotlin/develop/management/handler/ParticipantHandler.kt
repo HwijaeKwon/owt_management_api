@@ -48,7 +48,7 @@ class ParticipantHandler(private val participantService: ParticipantService) {
         val roomId = request.pathVariable("roomId")
         val participantId = request.pathVariable("participantId")
         return try {
-            val participantDetail = participantService.findOne(roomId, participantId)?: throw IllegalArgumentException("Participant not found in conference")
+            val participantDetail = participantService.findOne(roomId, participantId)
             ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(participantDetail)
         } catch (e: IllegalStateException) {
             val message = e.message ?: "Rpc error"
@@ -127,7 +127,7 @@ class ParticipantHandler(private val participantService: ParticipantService) {
         val participantId = request.pathVariable("participantId")
 
         return try {
-            val participantDetail = participantService.update(roomId, participantId, permissionUpdate)?: throw IllegalArgumentException("Participant not found in conference")
+            val participantDetail = participantService.update(roomId, participantId, permissionUpdate)
             ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(participantDetail)
         } catch (e: IllegalStateException) {
             val message = e.message?: "Rpc error"
@@ -146,6 +146,7 @@ class ParticipantHandler(private val participantService: ParticipantService) {
     @Operation(
             operationId = "deleteParticipant",
             description = "Delete participant",
+            parameters = [Parameter(name = "roomId", description = "Room id", required = true), Parameter(name = "participantId", description = "Participant id", required = true)],
             responses = [
                 ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "text_plain", schema = Schema(implementation = String::class), examples = [ExampleObject(value = "Participant deleted")])]),
                 ApiResponse(responseCode = "404", description = "Not found", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = BadRequestError.example)])]),
