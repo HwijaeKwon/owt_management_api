@@ -14,6 +14,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Sinks
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
+import java.util.concurrent.locks.LockSupport
 import java.util.function.Consumer
 import java.util.function.Supplier
 import kotlin.random.Random
@@ -55,7 +56,12 @@ class RpcController(private val environment: Environment) {
             .build()
 
         return Pair(processorMap[corrID]!!.asFlux(), corrID)
-            .apply { sendProcessor.emitNext(msg, Sinks.EmitFailureHandler.FAIL_FAST) }
+            .apply { sendProcessor.emitNext(msg, Sinks.EmitFailureHandler { signalType, emitResult ->
+                if(emitResult == Sinks.EmitResult.FAIL_NON_SERIALIZED) {
+                    LockSupport.parkNanos(10)
+                    true
+                } else false
+            }) }
     }
 
     private suspend fun receiveMessage(message: String) {
