@@ -2,6 +2,7 @@ package develop.management.rpc
 
 import kotlinx.coroutines.reactor.mono
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
@@ -11,6 +12,8 @@ import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Sinks
+import reactor.core.scheduler.Scheduler
+import reactor.core.scheduler.Schedulers
 import java.util.function.Consumer
 import java.util.function.Supplier
 import kotlin.random.Random
@@ -25,7 +28,7 @@ class RpcController(private val environment: Environment) {
     private val maxCorrID = environment.getProperty("rpc.maxCorrID", Long::class.java, 10000)
 
     // 메세지 수신 sink를 관리하는 map
-    private val processorMap: HashMap<Long, Sinks.Many<String>> = hashMapOf()
+    private val processorMap: HashMap<Long, Sinks.Many<Pair<String, String>>> = hashMapOf()
 
     // 메세지 전송 시 사용하는 sink
     private val sendProcessor = Sinks.many().unicast().onBackpressureBuffer<Message<String>>()
@@ -34,7 +37,7 @@ class RpcController(private val environment: Environment) {
         processorMap.remove(corrID)
     }
 
-    suspend fun sendMessage(routingKey: String, method: String, args: JSONArray, corrId: Long? = null): Pair<Flux<String>, Long> {
+    suspend fun sendMessage(routingKey: String, method: String, args: JSONArray, corrId: Long? = null): Pair<Flux<Pair<String, String>>, Long> {
         val corrID = corrId?: let {
             val candidate = Random.nextLong(maxCorrID)
             processorMap[candidate]?.run { throw IllegalStateException("Generate Corr ID fail") }
@@ -56,11 +59,12 @@ class RpcController(private val environment: Environment) {
     }
 
     private suspend fun receiveMessage(message: String) {
-        println(message)
         val jsonMessage = JSONObject(message)
         val corrID = jsonMessage.getLong("corrID")
-        processorMap[corrID]?.emitNext(message, Sinks.EmitFailureHandler.FAIL_FAST)
-            ?: throw IllegalStateException("Receiver processor not found")
+        val data = jsonMessage.getString("data")
+        val err = try { jsonMessage.getString("err") } catch (e: JSONException) { "" }
+        processorMap[corrID]?.emitNext(Pair(data, err), Sinks.EmitFailureHandler.FAIL_FAST)
+            ?: throw IllegalStateException("Receiver processor not found: $corrID")
     }
 
     @Bean

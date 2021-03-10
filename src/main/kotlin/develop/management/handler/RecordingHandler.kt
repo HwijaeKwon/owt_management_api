@@ -104,7 +104,7 @@ class RecordingHandler(private val recordingService: RecordingService) {
             operationId = "updateRecording",
             description = "Update recording",
             parameters = [Parameter(name = "roomId", description = "Room id", required = true), Parameter(name = "recordingId", description = "Recording id", required = true)],
-            requestBody = RequestBody(content = [Content(mediaType = "application/json", schema = Schema(implementation = SubscriptionControlInfo::class, required = true))]),
+            requestBody = RequestBody(content = [Content(mediaType = "application/json", array = ArraySchema(schema = Schema(implementation = SubscriptionControlInfo::class, required = true)))]),
             responses = [
                 ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", schema = Schema(implementation = Recordings::class))]),
                 ApiResponse(responseCode = "400", description = "Bad request error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = BadRequestError.example)])]),
@@ -114,25 +114,27 @@ class RecordingHandler(private val recordingService: RecordingService) {
     suspend fun update(request: ServerRequest): ServerResponse {
         val validator = SubscriptionControlInfoValidator()
 
-        val subscriptionControlInfo = try { request.awaitBodyOrNull<SubscriptionControlInfo>() } catch (e: Exception) { null } ?: run {
+        val subscriptionControlInfoList = try { request.awaitBodyOrNull<List<SubscriptionControlInfo>>() } catch (e: Exception) { null } ?: run {
             val error = BadRequestError("Invalid request body: Request body is not valid.")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
-        val errors = BeanPropertyBindingResult(subscriptionControlInfo, SubscriptionControlInfo::class.java.name)
-        validator.validate(subscriptionControlInfo, errors)
-        if(errors.allErrors.isNotEmpty()) {
-            var message = "Invalid request body: "
-            errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
-            val error = BadRequestError(message)
-            return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
+        subscriptionControlInfoList.forEach {
+            val errors = BeanPropertyBindingResult(it, SubscriptionControlInfo::class.java.name)
+            validator.validate(it, errors)
+            if(errors.allErrors.isNotEmpty()) {
+                var message = "Invalid request body: "
+                errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
+                val error = BadRequestError(message)
+                return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
+            }
         }
 
         val roomId = request.pathVariable("roomId")
         val recordingId = request.pathVariable("recordingId")
 
         return try {
-            val streamingOut = recordingService.update(roomId, recordingId, subscriptionControlInfo)
+            val streamingOut = recordingService.update(roomId, recordingId, subscriptionControlInfoList)
             ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(streamingOut)
         } catch (e: IllegalStateException) {
             val message = e.message ?: "Rpc error"

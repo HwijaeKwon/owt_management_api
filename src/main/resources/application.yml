@@ -38,7 +38,7 @@ spring:
     password: test1234
 
 server:
-  address: localhost
+  address: 192.168.9.13
   port: 8080
 
 #mongodb retry

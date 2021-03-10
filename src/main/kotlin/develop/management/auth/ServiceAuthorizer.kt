@@ -29,7 +29,6 @@ class ServiceAuthorizer(private val initializer: ManagementInitializer) {
     suspend fun serviceAuthorize(request: ServerRequest, next: suspend (ServerRequest) -> (ServerResponse)): ServerResponse {
         val authData = try { request.attributes()["authData"] as ServiceAuthenticator.AuthData? } catch(e: Exception) { null } ?: run {
             logger.info("AuthData is invalid")
-            println("AuthData is invalid")
             val error = AppError("ServiceAuthorizer serviceAuthorize fail: AuthData is invalid")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
@@ -46,7 +45,6 @@ class ServiceAuthorizer(private val initializer: ManagementInitializer) {
         if((superServiceId == authServiceId) || (authServiceId == serviceId)) {
             if(request.method() == HttpMethod.DELETE && serviceId == superServiceId) {
                 logger.info("Permission denied: Super service deletion is not permitted")
-                println("Permission denied: Super service deletion is not permitted")
                 val error = AuthorizationError("Permission denied: Super service deletion is not permitted")
                 return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
             }
@@ -55,7 +53,6 @@ class ServiceAuthorizer(private val initializer: ManagementInitializer) {
 
         val error = AuthorizationError("Permission denied")
         logger.info("Permission denied")
-        println("Permission denied")
         return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
     }
 }

@@ -11,6 +11,7 @@ class StreamUpdateValidator : Validator {
     }
 
     override fun validate(target: Any, errors: Errors) {
+
         val streamUpdate: StreamUpdate = target as StreamUpdate
 
         if(streamUpdate.op.isBlank()) errors.rejectValue("op", "field.empty", "The op must not be empty.")

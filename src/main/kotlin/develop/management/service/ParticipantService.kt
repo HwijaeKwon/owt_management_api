@@ -24,7 +24,7 @@ class ParticipantService(private val rpcService: RpcService) {
             throw IllegalStateException("Get participants in room fail. $result")
         }
 
-        val jsonArray = JSONArray()
+        val jsonArray = JSONArray(result)
         val participantArray = mutableListOf<JSONObject>()
         try {
             var i = 0
@@ -47,7 +47,7 @@ class ParticipantService(private val rpcService: RpcService) {
         val (status, result) = rpcService.getParticipantsInRoom(roomId)
         if(status == "error") throw IllegalStateException("Get participants in room fail. $result")
 
-        val jsonArray = JSONArray()
+        val jsonArray = JSONArray(result)
         val participantArray = mutableListOf<JSONObject>()
         try {
             var i = 0
@@ -64,8 +64,8 @@ class ParticipantService(private val rpcService: RpcService) {
     /**
      * 특정 room의 사용자 권한을 conference에 업데이트 한다
      */
-    suspend fun update(roomId: String, participantId: String, permissionUpdate: PermissionUpdate): ParticipantDetail {
-        val (status, result) = rpcService.updateParticipant(roomId, participantId, permissionUpdate)
+    suspend fun update(roomId: String, participantId: String, permissionUpdates: List<PermissionUpdate>): ParticipantDetail {
+        val (status, result) = rpcService.updateParticipant(roomId, participantId, permissionUpdates)
         if(status == "error") throw IllegalStateException("Update participant fail. $result")
 
         return Gson().fromJson(result, ParticipantDetail::class.java)

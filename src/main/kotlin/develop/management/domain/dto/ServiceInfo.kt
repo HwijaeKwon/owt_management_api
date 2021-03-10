@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema
  */
 data class ServiceInfo(
     @Schema(description = "Unique identifier of the service", nullable = false)
-    val id: String,
+    val _id: String,
     @Schema(description = "Name of the service", nullable = false, required = true)
     val name: String,
     @Schema(description = "Key of the service", nullable = false, required = true)

@@ -105,7 +105,7 @@ class SipCallHandler(private val sipCallService: SipCallService) {
             operationId = "updateSipCall",
             description = "Update sipcall",
             parameters = [Parameter(name = "roomId", description = "Room id", required = true), Parameter(name = "sipCallId", description = "SipCall id", required = true)],
-            requestBody = RequestBody(content = [Content(mediaType = "application/json", schema = Schema(implementation = MediaOutControlInfo::class, required = true))]),
+            requestBody = RequestBody(content = [Content(mediaType = "application/json", array = ArraySchema(schema = Schema(implementation = MediaOutControlInfo::class, required = true)))]),
             responses = [
                 ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", schema = Schema(implementation = SipCall::class))]),
                 ApiResponse(responseCode = "400", description = "Bad request error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = BadRequestError.example)])]),
@@ -115,25 +115,27 @@ class SipCallHandler(private val sipCallService: SipCallService) {
     suspend fun update(request: ServerRequest): ServerResponse {
         val validator = MediaOutControlInfoValidator()
 
-        val mediaOutControlInfo = try { request.awaitBodyOrNull<MediaOutControlInfo>() } catch (e: Exception) { null } ?: run {
+        val mediaOutControlInfoList = try { request.awaitBodyOrNull<List<MediaOutControlInfo>>() } catch (e: Exception) { null } ?: run {
             val error = BadRequestError("Invalid request body: Request body is not valid.")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
-        val errors = BeanPropertyBindingResult(mediaOutControlInfo, MediaOutControlInfo::class.java.name)
-        validator.validate(mediaOutControlInfo, errors)
-        if(errors.allErrors.isNotEmpty()) {
-            var message = "Invalid request body: "
-            errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
-            val error = BadRequestError(message)
-            return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
+        mediaOutControlInfoList.forEach {
+            val errors = BeanPropertyBindingResult(it, MediaOutControlInfo::class.java.name)
+            validator.validate(it, errors)
+            if(errors.allErrors.isNotEmpty()) {
+                var message = "Invalid request body: "
+                errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
+                val error = BadRequestError(message)
+                return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
+            }
         }
 
         val roomId = request.pathVariable("roomId")
         val sipCallId = request.pathVariable("sipCallId")
 
         return try {
-            val sipCall = sipCallService.update(roomId, sipCallId, mediaOutControlInfo)
+            val sipCall = sipCallService.update(roomId, sipCallId, mediaOutControlInfoList)
             ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(sipCall)
         } catch (e: IllegalStateException) {
             val message = e.message ?: "Rpc error"

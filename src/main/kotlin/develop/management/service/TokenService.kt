@@ -53,7 +53,8 @@ class TokenService(private val tokenRepository: TokenRepository,
         if(status == "error") throw IllegalStateException("Schedule portal fail. $result")
 
         val jsonResult = JSONObject(result)
-        val secure = if(jsonResult.getBoolean("under_https_proxy")) true else jsonResult.getBoolean("ssl")
+        val secure = if(jsonResult.isNull("under_https_proxy")
+                || jsonResult.getBoolean("under_https_proxy")) true else jsonResult.getBoolean("ssl")
 
         val hostname = jsonResult.getString("hostname")
         val port = jsonResult.getString("port")

@@ -32,7 +32,7 @@ class SipCallService(private val rpcService: RpcService) {
         val (status, result) = rpcService.getSipCallsInRoom(roomId)
         if(status == "error") throw IllegalStateException("Find all sipcalls fail. $result")
 
-        val jsonArray = JSONArray()
+        val jsonArray = JSONArray(result)
         val sipcallList = mutableListOf<JSONObject>()
         try {
             var i = 0
@@ -49,7 +49,7 @@ class SipCallService(private val rpcService: RpcService) {
     /**
      * 특정 room의 sipcall을 업데이트 한다
      */
-    suspend fun update(roomId: String, sipCallId: String, cmds: MediaOutControlInfo): SipCall {
+    suspend fun update(roomId: String, sipCallId: String, cmds: List<MediaOutControlInfo>): SipCall {
         val (status, result) = rpcService.updateSipCall(roomId, sipCallId, cmds)
         if(status == "error") throw IllegalStateException("Update sipcall fail. $result")
 

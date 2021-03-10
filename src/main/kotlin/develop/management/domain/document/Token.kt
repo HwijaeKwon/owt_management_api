@@ -11,8 +11,8 @@ import java.util.*
  * https://software.intel.com/sites/products/documentation/webrtc/restapi/ Token 참고
  */
 @Document(collection = "tokens")
-class Token constructor(private val roomId: String,
-                        private val serviceId: String,
+class Token constructor(private val room: String,
+                        private val service: String,
                         private val user: String,
                         private val role: String,
                         private val origin: Origin,
@@ -30,8 +30,8 @@ class Token constructor(private val roomId: String,
     fun getUser(): String = this.user
     fun getRole(): String = this.role
     fun getOrigin(): Origin = this.origin
-    fun getRoomId(): String = this.roomId
-    fun getServiceId(): String = this.serviceId
+    fun getRoomId(): String = this.room
+    fun getServiceId(): String = this.service
     fun getCode(): String = this.code
     fun getSecure(): Boolean = this.secure
     fun getHost(): String = this.host

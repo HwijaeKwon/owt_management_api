@@ -1,6 +1,7 @@
 package develop.management.service
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import develop.management.domain.dto.StreamInfo
 import develop.management.domain.dto.StreamUpdate
 import develop.management.domain.dto.StreamingInRequest
@@ -39,7 +40,7 @@ class StreamService(private val rpcService: RpcService) {
     suspend fun findOne(roomId: String, streamId: String): StreamInfo {
         val (status, streams) = rpcService.getStreamsInRoom(roomId)
         if(status == "error") throw IllegalStateException("Get streams in room fail. $streams")
-        val jsonArray = JSONArray()
+        val jsonArray = JSONArray(streams)
         val streamArray = mutableListOf<JSONObject>()
         try {
             var i = 0
@@ -62,7 +63,7 @@ class StreamService(private val rpcService: RpcService) {
     suspend fun findAll(roomId: String): List<StreamInfo> {
         val (status, streams) = rpcService.getStreamsInRoom(roomId)
         if(status == "error") throw IllegalStateException("Get streams in room fail. $streams")
-        val jsonArray = JSONArray()
+        val jsonArray = JSONArray(streams)
         val streamArray = mutableListOf<JSONObject>()
         try {
             var i = 0
@@ -80,8 +81,9 @@ class StreamService(private val rpcService: RpcService) {
     /**
      * 특정 room에 속한 특정 stream을 updateInfo를 반영하여 갱신한다
      */
-    suspend fun update(roomId: String, streamId: String, updateInfo: StreamUpdate):StreamInfo {
-        val (status, result) = rpcService.controlStream(roomId, streamId, updateInfo)
+    suspend fun update(roomId: String, streamId: String, updateInfoList: List<StreamUpdate>):StreamInfo {
+
+        val (status, result) = rpcService.controlStream(roomId, streamId, updateInfoList)
 
         if(status == "error") throw IllegalStateException("Control stream fail. $result")
 

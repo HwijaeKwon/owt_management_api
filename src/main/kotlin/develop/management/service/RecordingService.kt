@@ -36,7 +36,7 @@ class RecordingService(private val rpcService: RpcService) {
         val (status, result) = rpcService.getSubscriptionsInRoom(roomId, "recording")
         if(status == "error") throw IllegalStateException("Find all recording fail. $result")
 
-        val jsonArray = JSONArray()
+        val jsonArray = JSONArray(result)
         val recordingsList = mutableListOf<JSONObject>()
         try {
             var i = 0
@@ -53,7 +53,7 @@ class RecordingService(private val rpcService: RpcService) {
     /**
      * 특정 room의 recordings를 업데이트 한다
      */
-    suspend fun update(roomId: String, recordingsId: String, cmds: SubscriptionControlInfo): Recordings {
+    suspend fun update(roomId: String, recordingsId: String, cmds: List<SubscriptionControlInfo>): Recordings {
         val (status, result) = rpcService.controlSubscription(roomId, recordingsId, cmds)
         if(status == "error") throw IllegalStateException("Update recording fail. $result")
 

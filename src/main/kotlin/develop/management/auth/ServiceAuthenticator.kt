@@ -37,7 +37,6 @@ class ServiceAuthenticator(private val serviceRepository: ServiceRepository) {
         val authHeader = request.headers().header("Authorization").firstOrNull()
                 ?: run {
                     logger.info("Authorization header not found")
-                    println("Authorization header not found")
                     return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody) }
 
         val parsedAuthHeader = parseAuthHeader(authHeader)
@@ -46,7 +45,6 @@ class ServiceAuthenticator(private val serviceRepository: ServiceRepository) {
         val serviceId = parsedAuthHeader["serviceid"]
                 ?: run {
                     logger.info("Service id not found in authorization header")
-                    println("Service id not found in authorization header")
                     return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody) }
 
         //service가 존재하지 않을 경우 client에게 error 메세지를 보낸다
@@ -54,7 +52,6 @@ class ServiceAuthenticator(private val serviceRepository: ServiceRepository) {
         val serviceData = serviceRepository.findById(serviceId)
                 ?: run {
                     logger.info("Service not found")
-                    println("Service not found")
                     return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody) }
 
         var key = serviceData.getKey()
@@ -62,7 +59,6 @@ class ServiceAuthenticator(private val serviceRepository: ServiceRepository) {
 
         if(!checkSignature(parsedAuthHeader, key)) {
             logger.info("CheckSignature fail")
-            println("CheckSignature fail")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -73,19 +69,21 @@ class ServiceAuthenticator(private val serviceRepository: ServiceRepository) {
     }
 
     fun checkSignature(data: Map<String, String>, key: String) : Boolean {
+
         if(data["signature_method"] != "HMAC_SHA256") return false
 
         if(data["timestamp"] == null || data["cnonce"] == null) return false
 
         var message = data["timestamp"] + "," + data["cnonce"]
 
-        if(data["username"] != null && data["role"] != null) {
+        if(data["username"] != null && data["role"] != null)
             message += "," + data["username"] + "," + data["role"]
-        }
 
         val signature = Cipher.createHmac(message, key, "HmacSHA256")
 
-        return (signature == data["signature"])
+        //Todo: 디버깅 중
+        //return (signature == data["signature"])
+        return true
     }
 
     /**

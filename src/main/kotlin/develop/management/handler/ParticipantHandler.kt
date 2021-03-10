@@ -56,7 +56,6 @@ class ParticipantHandler(private val participantService: ParticipantService) {
             val message = e.message ?: "Rpc error"
             val error = AppError("Find one participant fail: $message")
             logger.info("Fail one participant fail: $message")
-            println("Fail one participant fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         } catch (e: IllegalArgumentException) {
             val message = e.message?: ""
@@ -89,13 +88,11 @@ class ParticipantHandler(private val participantService: ParticipantService) {
             val message = e.message?: "Rpc error"
             val error = AppError("Find all participants fail: $message")
             logger.info("Find all participants fail: $message")
-            println("Find all participants fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         } catch (e: IllegalArgumentException) {
             val message = e.message?: ""
             val error = NotFoundError(message)
             logger.info("Find all participants fail. Not found: $message")
-            println("Find all participants fail. Not found: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -107,7 +104,7 @@ class ParticipantHandler(private val participantService: ParticipantService) {
             operationId = "updateParticipant",
             description = "Update participant",
             parameters = [Parameter(name = "roomId", description = "Room id", required = true), Parameter(name = "participantId", description = "Participant id", required = true)],
-            requestBody = RequestBody(content = [Content(mediaType = "application/json", schema = Schema(implementation = PermissionUpdate::class, required = true))]),
+            requestBody = RequestBody(content = [Content(mediaType = "application/json", array = ArraySchema(schema = Schema(implementation = PermissionUpdate::class, required = true)))]),
             responses = [
                 ApiResponse(responseCode = "200", description = "Success", content = [Content(mediaType = "application/json", schema = Schema(implementation = ParticipantDetail::class))]),
                 ApiResponse(responseCode = "400", description = "Bad request error", content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorFoam::class), examples = [ExampleObject(value = BadRequestError.example)])]),
@@ -118,41 +115,39 @@ class ParticipantHandler(private val participantService: ParticipantService) {
     suspend fun update(request: ServerRequest): ServerResponse {
         val validator = PermissionUpdateValidator()
 
-        val permissionUpdate = try { request.awaitBodyOrNull<PermissionUpdate>() } catch (e: Exception) { null } ?: run {
+        val permissionUpdateList = try { request.awaitBodyOrNull<List<PermissionUpdate>>() } catch (e: Exception) { null } ?: run {
             val error = BadRequestError("Invalid request body: Request body is not valid.")
             logger.info("Update participant fail. Invalid request body: Request body is not valid.")
-            println("Update participant fail. Invalid request body: Request body is not valid.")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
-        val errors = BeanPropertyBindingResult(permissionUpdate, PermissionUpdate::class.java.name)
-        validator.validate(permissionUpdate, errors)
-        if(errors.allErrors.isNotEmpty()) {
-            var message = "Invalid request body: "
-            errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
-            val error = BadRequestError(message)
-            logger.info("Update participant fail. Invalid request body: $message")
-            println("Update participant fail. Invalid request body: $message")
-            return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
+        permissionUpdateList.forEach {
+            val errors = BeanPropertyBindingResult(it, PermissionUpdate::class.java.name)
+            validator.validate(it, errors)
+            if(errors.allErrors.isNotEmpty()) {
+                var message = "Invalid request body: "
+                errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
+                val error = BadRequestError(message)
+                logger.info("Update participant fail. Invalid request body: $message")
+                return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
+            }
         }
 
         val roomId = request.pathVariable("roomId")
         val participantId = request.pathVariable("participantId")
 
         return try {
-            val participantDetail = participantService.update(roomId, participantId, permissionUpdate)
+            val participantDetail = participantService.update(roomId, participantId, permissionUpdateList)
             ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(participantDetail)
         } catch (e: IllegalStateException) {
             val message = e.message?: "Rpc error"
             val error = AppError("Update participant fail: $message")
             logger.info("Update participant fail: $message")
-            println("Update participant fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         } catch (e: IllegalArgumentException) {
             val message = e.message?: ""
             val error = NotFoundError(message)
             logger.info("Update participant fail. Not found: $message")
-            println("Update participant fail. Not found: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -180,13 +175,11 @@ class ParticipantHandler(private val participantService: ParticipantService) {
             val message = e.message?: ""
             val error = AppError("Delete participant failed: $message")
             logger.info("Delete participant failed: $message")
-            println("Delete participant failed: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         } catch (e: IllegalArgumentException) {
             val message = e.message?: ""
             val error = NotFoundError(message)
             logger.info("Delete participant failed. Not found: $message")
-            println("Delete participant failed. Not found: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }

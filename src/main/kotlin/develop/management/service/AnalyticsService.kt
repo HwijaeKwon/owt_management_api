@@ -36,7 +36,7 @@ class AnalyticsService(private val rpcService: RpcService) {
         val (status, result) = rpcService.getSubscriptionsInRoom(roomId, "analytics")
         if(status == "error") throw IllegalStateException("Find all analytics fail. $result")
 
-        val jsonArray = JSONArray()
+        val jsonArray = JSONArray(result)
         val analyticsList = mutableListOf<JSONObject>()
         try {
             var i = 0

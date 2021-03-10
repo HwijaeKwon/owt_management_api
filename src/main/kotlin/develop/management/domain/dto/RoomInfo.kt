@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema
  */
 data class RoomInfo(
     @Schema(description = "Unique identifier of the room", nullable = false, required = true)
-    val id: String,
+    val _id: String,
     @Schema(description = "Name of the room", nullable = false, required = true, example = "name")
     val name: String,
     @Schema(description = "Participant limit of the room", nullable = false, required = false, example = "10")

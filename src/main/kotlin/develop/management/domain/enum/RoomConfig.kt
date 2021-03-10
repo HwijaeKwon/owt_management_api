@@ -97,8 +97,8 @@ enum class RoomConfig {
     },
     DEFAULT_CONFIG_TRANSCODING {
         override fun get(): Transcoding {
-            val video = Transcoding.Video(true, Transcoding.Video.Parameters(resolution = true, framerate = true, bitrate = true, keyFrameInterval = true))
-            return Transcoding(true, video)
+            val video = Transcoding.Video(Transcoding.Video.Parameters(resolution = true, framerate = true, bitrate = true, keyFrameInterval = true), true)
+            return Transcoding(video, true)
         }
     },
     DEFAULT_CONFIG_NOTIFYING {

@@ -13,7 +13,7 @@ data class StreamUpdate(
         @Schema(description = "Path (\"/info/inViews\", \"/media/audio/status\", \"/media/video/status\", \"/info/layout/{regionIndex}/stream\", \"/info/layout\")", nullable = false, required = true)
         val path: String,
         @Schema(description = "Value of updates (MixUpdate, StatusUpdate, RegionUpdate, LayoutUpdate", nullable = false, required = true)
-        var value: Any) {
+        val value: Any) {
 }
 
 data class StreamRegion(

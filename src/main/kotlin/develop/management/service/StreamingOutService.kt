@@ -59,7 +59,7 @@ class StreamingOutService(private val rpcService: RpcService) {
         val (status, result) = rpcService.getSubscriptionsInRoom(roomId, "streaming")
         if(status == "error") throw IllegalStateException("Get all streaming out fail. $result")
 
-        val jsonArray = JSONArray()
+        val jsonArray = JSONArray(result)
         val streamingOutList = mutableListOf<JSONObject>()
         try {
             var i = 0
@@ -76,7 +76,7 @@ class StreamingOutService(private val rpcService: RpcService) {
     /**
      * 특정 room의 streaming out을 업데이트 한다
      */
-    suspend fun update(roomId: String, streamingOutId: String, cmds: SubscriptionControlInfo): StreamingOut {
+    suspend fun update(roomId: String, streamingOutId: String, cmds: List<SubscriptionControlInfo>): StreamingOut {
         val (status, result) = rpcService.controlSubscription(roomId, streamingOutId, cmds)
         if(status == "error") throw IllegalStateException("Update streaming out fail. $result")
 
