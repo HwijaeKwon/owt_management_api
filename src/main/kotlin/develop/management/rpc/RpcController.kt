@@ -14,9 +14,12 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Sinks
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
+import java.util.*
+import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.locks.LockSupport
 import java.util.function.Consumer
 import java.util.function.Supplier
+import kotlin.collections.HashMap
 import kotlin.random.Random
 
 @Component
@@ -56,12 +59,13 @@ class RpcController(private val environment: Environment) {
             .build()
 
         return Pair(processorMap[corrID]!!.asFlux(), corrID)
-            .apply { sendProcessor.emitNext(msg, Sinks.EmitFailureHandler { signalType, emitResult ->
-                if(emitResult == Sinks.EmitResult.FAIL_NON_SERIALIZED) {
-                    LockSupport.parkNanos(10)
-                    true
-                } else false
-            }) }
+                .apply { sendProcessor.emitNext(msg) { signalType, emitResult ->
+                    if (emitResult == Sinks.EmitResult.FAIL_NON_SERIALIZED) {
+                        LockSupport.parkNanos(10)
+                        true
+                    } else false
+                }
+            }
     }
 
     private suspend fun receiveMessage(message: String) {
