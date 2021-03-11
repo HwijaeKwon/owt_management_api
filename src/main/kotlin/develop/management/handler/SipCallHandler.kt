@@ -16,13 +16,11 @@ import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import kotlinx.coroutines.flow.toList
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.validation.BeanPropertyBindingResult
-import org.springframework.web.reactive.function.server.ServerRequest
-import org.springframework.web.reactive.function.server.ServerResponse
-import org.springframework.web.reactive.function.server.awaitBodyOrNull
-import org.springframework.web.reactive.function.server.bodyValueAndAwait
+import org.springframework.web.reactive.function.server.*
 
 /**
  * SipCall 관련된 요청을 처리하는 handler function 모음
@@ -115,7 +113,7 @@ class SipCallHandler(private val sipCallService: SipCallService) {
     suspend fun update(request: ServerRequest): ServerResponse {
         val validator = MediaOutControlInfoValidator()
 
-        val mediaOutControlInfoList = try { request.awaitBodyOrNull<List<MediaOutControlInfo>>() } catch (e: Exception) { null } ?: run {
+        val mediaOutControlInfoList = try { request.bodyToFlow<MediaOutControlInfo>().toList() } catch (e: Exception) { null } ?: run {
             val error = BadRequestError("Invalid request body: Request body is not valid.")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }

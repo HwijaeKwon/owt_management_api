@@ -85,7 +85,6 @@ class StreamHandler(private val streamService: StreamService) {
         val roomId = request.pathVariable("roomId")
         return try {
             val streamList: List<StreamInfo> = streamService.findAll(roomId)
-            val gson = GsonBuilder().setPrettyPrinting().create()
             ok().contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(streamList)
         } catch (e: IllegalStateException) {
             val message = e.message?: ""
@@ -116,7 +115,7 @@ class StreamHandler(private val streamService: StreamService) {
         val roomId = request.pathVariable("roomId")
         val streamId = request.pathVariable("streamId")
 
-        val streamUpdateList = try { request.bodyToFlux<StreamUpdate>().collectList().awaitSingle() } catch (e: Exception) { null } ?: run {
+        val streamUpdateList = try { request.bodyToFlow<StreamUpdate>().toList() } catch (e: Exception) { null } ?: run {
             val error = BadRequestError("Invalid request body: Request body is not valid.")
             logger.info("Fail to update stream. Invalid request body: Request body is not valid.")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
