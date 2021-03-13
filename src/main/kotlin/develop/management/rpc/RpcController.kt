@@ -4,6 +4,7 @@ import kotlinx.coroutines.reactor.mono
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
 import org.springframework.core.env.Environment
@@ -25,6 +26,7 @@ import kotlin.random.Random
 @Component
 @PropertySource(value = ["classpath:application.yml"])
 class RpcController(private val environment: Environment) {
+    private final val logger = LoggerFactory.getLogger(this.javaClass.name)
 
     private val bindingRoutingKey = environment.getProperty("spring.cloud.stream.rabbit.bindings.rx-in-0.consumer.binding-routing-key", "management")
 
@@ -59,20 +61,25 @@ class RpcController(private val environment: Environment) {
             .build()
 
         return Pair(processorMap[corrID]!!.asFlux(), corrID)
-                .apply { sendProcessor.emitNext(msg) { signalType, emitResult ->
+                .apply { sendProcessor.emitNext(msg) { _, emitResult ->
                     if (emitResult == Sinks.EmitResult.FAIL_NON_SERIALIZED) {
                         LockSupport.parkNanos(10)
                         true
-                    } else false
+                    } else {
+                        processorMap.remove(corrID)
+                        false
+                    }
                 }
             }
     }
 
     private suspend fun receiveMessage(message: String) {
+        logger.debug("ReceivedMessage : $message")
+
         val jsonMessage = JSONObject(message)
         val corrID = jsonMessage.getLong("corrID")
         val data = jsonMessage.getString("data")
-        val err = try { jsonMessage.getString("err") } catch (e: JSONException) { "" }
+        val err = if(jsonMessage.has("err")) jsonMessage.getString("err") else ""
         processorMap[corrID]?.emitNext(Pair(data, err), Sinks.EmitFailureHandler.FAIL_FAST)
             ?: throw IllegalStateException("Receiver processor not found: $corrID")
     }
@@ -87,7 +94,7 @@ class RpcController(private val environment: Environment) {
         stream.concatMap { msg ->
             mono { receiveMessage(msg.payload) }
         }.onErrorContinue { e, _ ->
-            println(e.message)
+            logger.error(e.message)
         }.subscribe()
     }
 }

@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import kotlinx.coroutines.flow.toList
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.validation.BeanPropertyBindingResult
@@ -27,6 +28,7 @@ import org.springframework.web.reactive.function.server.*
  */
 @Component
 class SipCallHandler(private val sipCallService: SipCallService) {
+    private final val logger = LoggerFactory.getLogger(this.javaClass.name)
 
     /**
      * 모든 sipcall을 조회한다
@@ -49,6 +51,7 @@ class SipCallHandler(private val sipCallService: SipCallService) {
         } catch (e: IllegalStateException) {
             val message = e.message ?: "Rpc error"
             val error = AppError("Find all sipcalls fail: $message")
+            logger.info("Find all sipcalls fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -72,6 +75,7 @@ class SipCallHandler(private val sipCallService: SipCallService) {
 
         val sipCallRequest = try { request.awaitBodyOrNull<SipCallRequest>() } catch (e: Exception) { null } ?: run {
             val error = BadRequestError("Invalid request body: Request body is not valid.")
+            logger.info("Invalid request body: Request body is not valid.")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -81,6 +85,7 @@ class SipCallHandler(private val sipCallService: SipCallService) {
             var message = "Invalid request body: "
             errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
             val error = BadRequestError(message)
+            logger.info(message)
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -92,6 +97,7 @@ class SipCallHandler(private val sipCallService: SipCallService) {
         } catch (e: IllegalStateException) {
             val message = e.message?: "Rpc error"
             val error = AppError("Add sipcall fail: $message")
+            logger.info("Add sipcall fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -115,6 +121,7 @@ class SipCallHandler(private val sipCallService: SipCallService) {
 
         val mediaOutControlInfoList = try { request.bodyToFlow<MediaOutControlInfo>().toList() } catch (e: Exception) { null } ?: run {
             val error = BadRequestError("Invalid request body: Request body is not valid.")
+            logger.info("Invalid request body: Request body is not valid.")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -125,6 +132,7 @@ class SipCallHandler(private val sipCallService: SipCallService) {
                 var message = "Invalid request body: "
                 errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
                 val error = BadRequestError(message)
+                logger.info(message)
                 return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
             }
         }
@@ -138,6 +146,7 @@ class SipCallHandler(private val sipCallService: SipCallService) {
         } catch (e: IllegalStateException) {
             val message = e.message ?: "Rpc error"
             val error = AppError("Update sipcall fail: $message")
+            logger.info("Update sipcall fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -164,6 +173,7 @@ class SipCallHandler(private val sipCallService: SipCallService) {
         } catch (e: IllegalStateException) {
             val message = e.message ?: ""
             val error = AppError("Delete sipcall failed: $message")
+            logger.info("Delete sipcall failed: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }

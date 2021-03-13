@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import kotlinx.coroutines.flow.toList
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.validation.BeanPropertyBindingResult
@@ -26,6 +27,7 @@ import org.springframework.web.reactive.function.server.*
  */
 @Component
 class RecordingHandler(private val recordingService: RecordingService) {
+    private final val logger = LoggerFactory.getLogger(this.javaClass.name)
 
     /**
      * 모든 recording을 조회한다
@@ -48,6 +50,7 @@ class RecordingHandler(private val recordingService: RecordingService) {
         } catch (e: IllegalStateException) {
             val message = e.message ?: "Rpc error"
             val error = AppError("Find all recordings fail: $message")
+            logger.info("Find all recordings fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -71,6 +74,7 @@ class RecordingHandler(private val recordingService: RecordingService) {
 
         val recordingRequest = try { request.awaitBodyOrNull<RecordingRequest>() } catch (e: Exception) { null } ?: run {
             val error = BadRequestError("Invalid request body: Request body is not valid.")
+            logger.info("Invalid request body: Request body is not valid.")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -80,6 +84,7 @@ class RecordingHandler(private val recordingService: RecordingService) {
             var message = "Invalid request body: "
             errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
             val error = BadRequestError(message)
+            logger.info(message)
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -91,6 +96,7 @@ class RecordingHandler(private val recordingService: RecordingService) {
         } catch (e: IllegalStateException) {
             val message = e.message?: "Rpc error"
             val error = AppError("Add recording fail: $message")
+            logger.info("Add recording fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -114,6 +120,7 @@ class RecordingHandler(private val recordingService: RecordingService) {
 
         val subscriptionControlInfoList = try { request.bodyToFlow<SubscriptionControlInfo>().toList() } catch (e: Exception) { null } ?: run {
             val error = BadRequestError("Invalid request body: Request body is not valid.")
+            logger.info("Invalid request body: Request body is not valid.")
             return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
 
@@ -124,6 +131,7 @@ class RecordingHandler(private val recordingService: RecordingService) {
                 var message = "Invalid request body: "
                 errors.allErrors.forEach { error -> message += error.defaultMessage + " "}
                 val error = BadRequestError(message)
+                logger.info(message)
                 return ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
             }
         }
@@ -137,6 +145,7 @@ class RecordingHandler(private val recordingService: RecordingService) {
         } catch (e: IllegalStateException) {
             val message = e.message ?: "Rpc error"
             val error = AppError("Update recording fail: $message")
+            logger.info("Update recording fail: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }
@@ -163,6 +172,7 @@ class RecordingHandler(private val recordingService: RecordingService) {
         } catch (e: IllegalStateException) {
             val message = e.message ?: ""
             val error = AppError("Delete recording failed: $message")
+            logger.info("Delete recording failed: $message")
             ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
         }
     }

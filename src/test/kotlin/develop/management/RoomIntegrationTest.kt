@@ -1,6 +1,5 @@
 package develop.management
 
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import develop.management.domain.*
 import develop.management.domain.document.Room
@@ -606,9 +605,9 @@ class RoomIntegrationTest {
                 .returnResult()
 
         Assertions.assertNotNull(result.responseBody)
-        roomRepository.findById(result.responseBody!!.id)?: throw AssertionError("Room does not exist")
+        roomRepository.findById(result.responseBody!!._id)?: throw AssertionError("Room does not exist")
         val service = serviceRepository.findById(service.getId())?: throw AssertionError("Service does not exist")
-        if(service.getRooms().none { it == result.responseBody!!.id }) throw AssertionError("Room does not exist in service")
+        if(service.getRooms().none { it == result.responseBody!!._id }) throw AssertionError("Room does not exist in service")
     }
 
     /**
@@ -717,7 +716,7 @@ class RoomIntegrationTest {
         Assertions.assertNotNull(result.responseBody)
         val gson = GsonBuilder().setPrettyPrinting().create()
         println(gson.toJson(result.responseBody))
-        val roomId = result.responseBody!!.id
+        val roomId = result.responseBody!!._id
         Assertions.assertEquals(room.getId(), roomId)
         roomRepository.findById(roomId)?: throw AssertionError("Room does not exist")
         return@runBlocking

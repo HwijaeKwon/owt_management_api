@@ -6,6 +6,7 @@ import develop.management.rpc.RpcService
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 /**
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class AnalyticsService(private val rpcService: RpcService) {
+    private final val logger = LoggerFactory.getLogger(this.javaClass.name)
 
     /**
      * 새로운 analytics를 생성한다

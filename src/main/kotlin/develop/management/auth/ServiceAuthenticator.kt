@@ -82,8 +82,9 @@ class ServiceAuthenticator(private val serviceRepository: ServiceRepository) {
         val signature = Cipher.createHmac(message, key, "HmacSHA256")
 
         //Todo: 디버깅 중
-        //return (signature == data["signature"])
-        return true
+        logger.debug("Created signature : $signature")
+        logger.debug("Received signature : " + data["signature"])
+        return (signature == data["signature"])
     }
 
     /**
