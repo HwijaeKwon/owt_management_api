@@ -19,7 +19,6 @@ import java.util.*
 /**
  * RoomConfig validator 테스트 클래스
  */
-@SpringBootTest
 internal class RoomConfigValidatorTest {
 
     private val validator: RoomConfigValidator = RoomConfigValidator()

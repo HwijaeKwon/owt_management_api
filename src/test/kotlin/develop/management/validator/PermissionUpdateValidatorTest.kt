@@ -18,7 +18,6 @@ import java.util.*
 /**
  * PermissionUpdate validator 테스트 클래스
  */
-@SpringBootTest
 internal class PermissionUpdateValidatorTest {
 
     private val validator: PermissionUpdateValidator = PermissionUpdateValidator()
@@ -229,41 +228,6 @@ internal class PermissionUpdateValidatorTest {
         Assertions.assertEquals(400, status)
         Assertions.assertEquals(1201, code)
     }
-
-    /**
-     * PermissionUpdate의 value가 null일 때 permissionUpdate validator 테스트
-     * @expected: Invalid request body: Request body is not valid. (status: 400, error_code: 1201)
-     * Todo: JSONObject를 이용하여 update를 생성하면 value에 default로 false가 들어간다. 실제 환경에서 테스트해볼 필요가 있다
-     */
-    /*
-    @Test
-    fun noValuePermissionUpdateValidatorTest() {
-        val update = JSONObject()
-        update["op"] = "replace"
-        update["path"] = "/permission/publish/audio"
-        val result = WebTestClient
-                .bindToRouterFunction(router())
-                .build()
-                .patch()
-                .uri("/participants")
-                .bodyValue(update)
-                .exchange()
-                .expectStatus()
-                .is4xxClientError
-                .expectBody(ErrorBody::class.java)
-                .returnResult()
-
-        Assertions.assertNotNull(result.responseBody)
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        println(gson.toJson(result.responseBody))
-        val message = result.responseBody?.error?.message ?: throw AssertionError("Message does not exist")
-        val status = result.status.value()
-        val code = result.responseBody?.error?.code ?: throw AssertionError("Code does not exist")
-        Assertions.assertEquals("Invalid request body: Request body is not valid.", message)
-        Assertions.assertEquals(400, status)
-        Assertions.assertEquals(1201, code)
-    }
-    */
 
     /**
      * PermissionUpdate의 value가 유효하지 않을 때 permissionUpdate validator 테스트

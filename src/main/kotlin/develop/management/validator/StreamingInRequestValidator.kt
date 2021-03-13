@@ -16,14 +16,14 @@ class StreamingInRequestValidator : Validator {
         val media = streamingInRequest.media
 
         if(connection.url.isBlank())
-            errors.rejectValue("url", "field.invalid", "Invalid url.")
+            errors.rejectValue("connection.url", "field.invalid", "Invalid url.")
         if(connection.transportProtocol != "tcp" && connection.transportProtocol != "udp")
-            errors.rejectValue("transportProtocol", "field.invalid", "Invalid transportProtocol.")
+            errors.rejectValue("connection.transportProtocol", "field.invalid", "Invalid transportProtocol.")
         if(connection.bufferSize < 0)
-            errors.rejectValue("bufferSize", "field.invalid", "Invalid bufferSize.")
+            errors.rejectValue("connection.bufferSize", "field.invalid", "Invalid bufferSize.")
         if(media.audio != "auto" && media.audio != true && media.audio != false)
-            errors.rejectValue("audio", "field.invalid", "Invalid audio.")
-        if(media.video != "auto" && media.audio != true && media.audio != false)
-            errors.rejectValue("video", "field.invalid", "Invalid video.")
+            errors.rejectValue("media.audio", "field.invalid", "Invalid audio.")
+        if(media.video != "auto" && media.video != true && media.video != false)
+            errors.rejectValue("media.video", "field.invalid", "Invalid video.")
     }
 }

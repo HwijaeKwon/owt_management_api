@@ -21,7 +21,6 @@ import java.util.*
 /**
  * TokenRequest validator 테스트 클래스
  */
-@SpringBootTest
 internal class TokenConfigValidatorTest {
 
     private val validator: TokenConfigValidator = TokenConfigValidator()

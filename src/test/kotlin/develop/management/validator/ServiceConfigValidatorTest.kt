@@ -23,19 +23,18 @@ import java.util.*
  * Authentication, authorization, 다른 validation error는 고려하지 않는다
  * -> Authentication, authorization, 다른 vadlidation error는 따로 테스트 클래스를 만든다
  */
-@SpringBootTest
 internal class ServiceConfigValidatorTest {
 
     private val validator: ServiceConfigValidator = ServiceConfigValidator()
 
-    fun router() = coRouter {
+    private fun router() = coRouter {
         POST("/services") {
             val serviceConfig = try { it.awaitBodyOrNull<ServiceConfig>() } catch (e: Exception) { null } ?: run {
                 val error = BadRequestError("Invalid request body: Required arguments must not be null")
                 return@POST ServerResponse.status(error.status).contentType(MediaType.APPLICATION_JSON).bodyValueAndAwait(error.errorBody)
             }
 
-            val errors = BeanPropertyBindingResult(serviceConfig, RoomConfig::class.java.name)
+            val errors = BeanPropertyBindingResult(serviceConfig, ServiceConfig::class.java.name)
             validator.validate(serviceConfig, errors)
             if(errors.allErrors.isNotEmpty()) {
                 var message = "Invalid request body: "

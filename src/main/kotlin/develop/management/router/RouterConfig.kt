@@ -157,6 +157,8 @@ class RouterConfig {
             RouterOperation(path = "/v1/rooms/{roomId}/streams/{streamId}", method = [RequestMethod.PATCH], headers = ["Authorization"], beanClass = StreamHandler::class, beanMethod = "update"),
             RouterOperation(path = "/v1/rooms/{roomId}/streams/{streamId}", method = [RequestMethod.DELETE], headers = ["Authorization"], beanClass = StreamHandler::class, beanMethod = "delete"),
             RouterOperation(path = "/v1/rooms/{roomId}/streams", method = [RequestMethod.GET], headers = ["Authorization"], beanClass = StreamHandler::class, beanMethod = "findAll"),
+            RouterOperation(path = "/v1/rooms/{roomId}/streaming-ins", method = [RequestMethod.POST], headers = ["Authorization"], beanClass = StreamHandler::class, beanMethod = "addStreamingIn"),
+            RouterOperation(path = "/v1/rooms/{roomId}/streaming-ins/{streamId}", method = [RequestMethod.DELETE], headers = ["Authorization"], beanClass = StreamHandler::class, beanMethod = "delete"),
     )
     fun streamRouter(): RouterFunction<ServerResponse> = coRouter {
         "/v1/rooms/{roomId}".nest {
