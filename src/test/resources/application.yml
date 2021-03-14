@@ -1,0 +1,51 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017
+      host: localhost
+      port: 27017
+      database: test
+
+  cloud:
+    function:
+        definition: tx;rx
+    stream:
+      bindings:
+        tx-out-0:
+          binder: rabbit
+          destination: owtRpc
+        rx-in-0:
+          binder: rabbit
+          destination: owtRpc
+          group: management
+      rabbit:
+        bindings:
+          rx-in-0:
+            consumer:
+              exchange-type: direct
+              #management api가 scalable하려면 중복되지 않는 값을 사용해야 한다
+              binding-routing-key: 'management'
+          tx-out-0:
+            producer:
+              exchangeDurable: false
+              exchangeAutoDelete: true
+              exchange-type: direct
+              routing-key-expression: headers['routingKey']
+
+  rabbitmq:
+    host: 192.168.9.14
+    port: 54321
+    username: test
+    password: test1234
+
+#mongodb retry
+mongodb:
+  retry:
+    times: 5
+    initialDelay: 100
+    maxDelay: 1000
+
+logging:
+  level:
+    org.springframework: INFO
+    org.springframework.web: DEBUG

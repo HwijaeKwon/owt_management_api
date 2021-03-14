@@ -19,8 +19,5 @@ class StreamingOutRequestValidator : Validator {
             errors.rejectValue("protocol", "field.invalid", "Invalid protocol.")
         if(streamingOutRequest.url.isBlank())
             errors.rejectValue("url", "field.invalid", "Invalid url.")
-
-        if(streamingOutRequest.parameters != null)
-            errors.rejectValue("parameters", "field.invalid", "Invalid parameters.")
     }
 }

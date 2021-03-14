@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema
  */
 data class StreamingOutRequest(
         @Schema(description = "Protocol of streaming out. \"rtmp\" | \"rtsp\" | \"hls\" | \"dash\"", nullable = true, required = true, example = "rtmp")
-        val protocol: String? = null,
+        val protocol: String,
         @Schema(description = "Url of streaming out", nullable = false, required = true)
         val url: String,
         @Schema(description = "Parameters of streaming out. HlsParameters | DashParameters", nullable = true, required = false, defaultValue = "null", implementation = HlsParameters::class)

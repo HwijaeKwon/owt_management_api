@@ -8,18 +8,21 @@ import develop.management.domain.document.Service
 import develop.management.domain.dto.CreateOptions
 import develop.management.domain.dto.RoomConfig
 import develop.management.domain.dto.ServiceConfig
-import develop.management.repository.KeyRepository
-import develop.management.repository.RoomRepository
-import develop.management.repository.ServiceRepository
+import develop.management.repository.mongo.MongoRoomRepository
+import develop.management.repository.mongo.TestReactiveMongoConfig
 import develop.management.util.cipher.Cipher
 import develop.management.util.error.ErrorBody
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.server.RouterFunction
 import org.springframework.web.reactive.function.server.ServerResponse
@@ -30,20 +33,12 @@ import org.springframework.web.reactive.function.server.coRouter
  * Room Validation 테스트 클래스
  * Server 전체를 bind하지 않고 router function만 bind한다
  */
-@SpringBootTest
+@SpringBootTest(classes = [TestReactiveMongoConfig::class, MongoRoomRepository::class, RoomValidator::class])
+@EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
 internal class RoomValidatorTest {
 
-    @Autowired
-    private lateinit var initializer: ManagementInitializer
-
-    @Autowired
-    private lateinit var serviceRepository: ServiceRepository
-
-    @Autowired
-    private lateinit var roomRepository: RoomRepository
-
-    @Autowired
-    private lateinit var keyRepository: KeyRepository
+    @MockBean
+    private lateinit var roomRepository: MongoRoomRepository
 
     @Autowired
     private lateinit var roomValidator: RoomValidator
@@ -52,43 +47,21 @@ internal class RoomValidatorTest {
 
     private lateinit var service: Service
 
-    private lateinit var superService: Service
-
     private lateinit var room: Room
 
     private lateinit var notInServiceRoom: Room
 
     @BeforeEach
-    fun init() {
-        //SuperService 생성
-        initializer.init()
-        val superServiceId = initializer.getSuperServiceId()
-        superService = runBlocking { serviceRepository.findById(superServiceId) }?: throw AssertionError("SuperService does not exist")
+    fun init() = runBlocking {
+        service = Service.create(ServiceConfig("serviceName", "serviceKey"))
+        val roomConfig = RoomConfig("name", CreateOptions())
+        room = Room.create(roomConfig)
+        service.addRoom("roomId")
+        notInServiceRoom = Room.create(roomConfig)
 
-        //authData 생성
-        val serviceName = "auth_test_service" + Cipher.generateByteArray(1).decodeToString()
-        runBlocking {
-            if(serviceRepository.existsByName(serviceName)) throw AssertionError("Service already exists")
-
-            val serviceKey = Cipher.generateKey(128, "HmacSHA256")
-            val serviceData = Service.create(ServiceConfig(serviceName, serviceKey))
-            val roomConfig = RoomConfig("name", CreateOptions())
-
-            service = serviceRepository.save(serviceData)
-            room = roomRepository.save(Room.create(roomConfig))
-            service.addRoom(room.getId())
-            service = serviceRepository.save(service)
-            notInServiceRoom = roomRepository.save(Room.create(roomConfig))
-        }
-    }
-
-    @AfterEach
-    fun close() {
-        runBlocking {
-            serviceRepository.deleteAll()
-            roomRepository.deleteAll()
-            keyRepository.deleteAll()
-        }
+        Mockito.`when`(roomRepository.findById("roomId")).thenReturn(room)
+        Mockito.`when`(roomRepository.findById("notInServiceRoomId")).thenReturn(notInServiceRoom)
+        return@runBlocking
     }
 
     fun roomRouter(): RouterFunction<ServerResponse> = coRouter {
@@ -116,7 +89,7 @@ internal class RoomValidatorTest {
                 .bindToRouterFunction(roomRouter())
                 .build()
                 .get()
-                .uri("/rooms/{roomId}", room.getId())
+                .uri("/rooms/{roomId}", "roomId")
                 .exchange()
                 .expectStatus()
                 .isOk
@@ -139,7 +112,7 @@ internal class RoomValidatorTest {
                 .bindToRouterFunction(roomRouter())
                 .build()
                 .get()
-                .uri("/rooms/{roomId}", notInServiceRoom.getId())
+                .uri("/rooms/{roomId}", "notInServiceRoomId")
                 .exchange()
                 .expectStatus()
                 .isNotFound

@@ -8,6 +8,9 @@ import develop.management.domain.dto.RoomConfig
 import develop.management.domain.dto.ServiceConfig
 import develop.management.repository.RoomRepository
 import develop.management.repository.ServiceRepository
+import develop.management.repository.mongo.MongoRoomRepository
+import develop.management.repository.mongo.MongoServiceRepository
+import develop.management.repository.mongo.TestReactiveMongoConfig
 import develop.management.util.cipher.Cipher
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
@@ -15,21 +18,25 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ContextConfiguration
 
 /**
  * ServiceData Service 테스트 클래스
  * Authenticator, authorization, validation error는 고려하지 않는다
  * -> Authenticator, authorization, vadlidation error는 따로 테스트 클래스를 만든다
  */
-@SpringBootTest
+@SpringBootTest(classes = [TestReactiveMongoConfig::class, MongoServiceRepository::class, MongoRoomRepository::class, ServiceService::class])
+@EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
 internal class ServiceServiceTest {
 
     @Autowired
-    private lateinit var serviceRepository: ServiceRepository
+    private lateinit var serviceRepository: MongoServiceRepository
 
     @Autowired
-    private lateinit var roomRepository: RoomRepository
+    private lateinit var roomRepository: MongoRoomRepository
 
     @Autowired
     private lateinit var serviceService: ServiceService

@@ -14,7 +14,7 @@ import org.springframework.web.reactive.function.server.bodyValueAndAwait
  * client의 요청이 유효한지 확인하는 클래스
  */
 
-@Component("v1RoomValidator")
+@Component
 class RoomValidator(private val roomRepository: RoomRepository) {
 
     /**

@@ -12,31 +12,43 @@ import develop.management.domain.enum.Audio
 import develop.management.domain.enum.Video
 import develop.management.repository.RoomRepository
 import develop.management.repository.ServiceRepository
+import develop.management.repository.mongo.MongoRoomRepository
+import develop.management.repository.mongo.MongoServiceRepository
+import develop.management.repository.mongo.TestReactiveMongoConfig
+import develop.management.rpc.RpcService
 import develop.management.util.cipher.Cipher
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 
 /**
  * Room Service 테스트 클래스
  * Authenticator, authorization, validation error는 고려하지 않는다
  * -> Authenticator, authorization, vadlidation error는 따로 테스트 클래스를 만든다
  */
-@SpringBootTest
+@SpringBootTest(classes = [TestReactiveMongoConfig::class, MongoServiceRepository::class, MongoRoomRepository::class, RoomService::class, RpcService::class])
+@EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
 internal class RoomServiceTest {
 
     @Autowired
     private lateinit var roomService: RoomService
 
     @Autowired
-    private lateinit var serviceRepository: ServiceRepository
+    private lateinit var serviceRepository: MongoServiceRepository
 
     @Autowired
-    private lateinit var roomRepository: RoomRepository
+    private lateinit var roomRepository: MongoRoomRepository
+
+    @MockBean
+    private lateinit var rpcService: RpcService
 
     private lateinit var service: Service
 
@@ -53,7 +65,6 @@ internal class RoomServiceTest {
         service.addRoom(room.getId())
         service = serviceRepository.save(service)
         room = roomRepository.save(room)
-
         return@runBlocking
     }
 
@@ -73,6 +84,8 @@ internal class RoomServiceTest {
     fun createNormalTest() = runBlocking {
         val options = CreateOptions()
         val room = Room.create(RoomConfig("create_test_room", options)).let { roomRepository.save(it) }
+
+        Mockito.`when`(rpcService.notifySipPortal("create", room)).thenReturn(Pair("success", "Success"))
 
         val result = roomService.create(service.getId(), room)
         Assertions.assertNotNull(result)
@@ -105,6 +118,7 @@ internal class RoomServiceTest {
                 develop.management.domain.enum.RoomConfig.DEFAULT_CONFIG_SIP.get() as Sip
         )
         val room = Room.create(RoomConfig("create_test_room", options)).let { roomRepository.save(it) }
+
         val exception = Assertions.assertThrows(IllegalStateException::class.java) { runBlocking { roomService.create(service.getId(), room) } }
         Assertions.assertEquals("MediaOut conflicts with View Setting", exception.message)
     }
@@ -196,9 +210,10 @@ internal class RoomServiceTest {
      * @excepted: 업데이트된 room이 반환된다
      */
     @Test
-    fun updateTest() {
+    fun updateTest() = runBlocking {
         val update = UpdateOptions(room.getName(), 3, 3)
-        val result = runBlocking { roomService.update(service.getId(), room.getId(), update) }
+
+        val result = roomService.update(service.getId(), room.getId(), update)
         Assertions.assertNotNull(result)
         val gson = GsonBuilder().setPrettyPrinting().create()
         println(gson.toJson(result))
@@ -289,6 +304,9 @@ internal class RoomServiceTest {
      */
     @Test
     fun deleteTest() = runBlocking {
+
+        Mockito.`when`(rpcService.deleteRoom(room.getId())).thenReturn(Pair("success", "Success"))
+
         val result = roomService.delete(service.getId(), room.getId())
         Assertions.assertNotNull(result)
         if(roomRepository.existsById(room.getId())) throw AssertionError("Room still exists")
