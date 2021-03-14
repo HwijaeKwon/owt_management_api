@@ -10,8 +10,6 @@ import develop.management.domain.dto.ServiceConfig
 import develop.management.domain.dto.UpdateOptions
 import develop.management.domain.enum.Audio
 import develop.management.domain.enum.Video
-import develop.management.repository.RoomRepository
-import develop.management.repository.ServiceRepository
 import develop.management.repository.mongo.MongoRoomRepository
 import develop.management.repository.mongo.MongoServiceRepository
 import develop.management.repository.mongo.TestReactiveMongoConfig
@@ -186,7 +184,7 @@ internal class RoomServiceTest {
         service.addRoom(roomId)
         service = runBlocking { serviceRepository.save(service) }
         if( runBlocking { roomRepository.existsById((roomId))}) throw AssertionError("Room already exists")
-        val exception = Assertions.assertThrows(IllegalArgumentException::class.java) { runBlocking { roomService.findOne(service.getId(), room.getId())}}
+        val exception = Assertions.assertThrows(IllegalArgumentException::class.java) { runBlocking { roomService.findOne(service.getId(), roomId)}}
         Assertions.assertEquals("Room not found", exception.message)
     }
 
@@ -275,7 +273,7 @@ internal class RoomServiceTest {
             roomRepository.save(testRoom).getId()
         }
         val update = UpdateOptions("name")
-        val exception = Assertions.assertThrows(IllegalArgumentException::class.java) { runBlocking { roomService.update("", id, update) } }
+        val exception = Assertions.assertThrows(IllegalArgumentException::class.java) { runBlocking { roomService.update(service.getId(), id, update) } }
         Assertions.assertEquals("Room not found", exception.message)
     }
 
@@ -294,7 +292,7 @@ internal class RoomServiceTest {
         service.addRoom(id)
         service = runBlocking { serviceRepository.save(service) }
         val update = UpdateOptions("name")
-        val exception = Assertions.assertThrows(IllegalArgumentException::class.java) { runBlocking { roomService.update("", id, update) } }
+        val exception = Assertions.assertThrows(IllegalArgumentException::class.java) { runBlocking { roomService.update(service.getId(), id, update) } }
         Assertions.assertEquals("Room not found", exception.message)
     }
 

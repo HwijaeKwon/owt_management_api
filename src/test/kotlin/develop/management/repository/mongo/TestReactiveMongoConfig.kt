@@ -7,7 +7,6 @@ import de.flapdoodle.embed.mongo.MongodExecutable
 import de.flapdoodle.embed.mongo.MongodStarter
 import de.flapdoodle.embed.mongo.config.MongodConfigBuilder
 import de.flapdoodle.embed.mongo.config.Net
-import de.flapdoodle.embed.mongo.config.Storage
 import de.flapdoodle.embed.mongo.distribution.Version
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -18,7 +17,6 @@ import org.springframework.data.mongodb.ReactiveMongoTransactionManager
 import org.springframework.data.mongodb.SessionSynchronization
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.transaction.reactive.TransactionalOperator
-import de.flapdoodle.embed.mongo.config.MongoCmdOptionsBuilder
 import org.springframework.data.mongodb.core.SimpleReactiveMongoDatabaseFactory
 
 @TestConfiguration

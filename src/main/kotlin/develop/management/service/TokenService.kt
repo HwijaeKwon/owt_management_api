@@ -40,15 +40,15 @@ class TokenService(private val tokenRepository: TokenRepository,
     /**
      * 특정 service의 특정 room을 위한 token을 생성한다
      */
-    suspend fun create(serviceId: String, roomId: String, user: String, role: String, origin: Token.Origin): String {
+    suspend fun create(serviceId: String, roomId: String, user: String, role: String, origin: Token.Origin, code: String = ""): String {
 
         if(user.isBlank()) throw IllegalArgumentException("Name or role not valid")
         val room = roomRepository.findById(roomId)?: throw IllegalArgumentException("Room not found")
         if(room.getRoles().none { it.role == role }) throw Exception("Role is not valid")
 
-        val code = Random.nextLong(0, 100000000000).toString() + ""
+        val tokenCode = if(code.isBlank()) Random.nextLong(0, 100000000000).toString() + "" else code
 
-        val (status, result) = rpcService.schedulePortal(code, origin)
+        val (status, result) = rpcService.schedulePortal(tokenCode, origin)
 
         if(status == "error") throw IllegalStateException("Schedule portal fail. $result")
 
@@ -61,7 +61,7 @@ class TokenService(private val tokenRepository: TokenRepository,
         val ip = jsonResult.getString("ip")
         val host = if(hostname.isNotBlank()) "$hostname:$port" else "$ip:$port"
 
-        val savedToken = tokenRepository.save(Token(roomId, serviceId, user, role, origin, code, secure, host))
+        val savedToken = tokenRepository.save(Token(roomId, serviceId, user, role, origin, tokenCode, secure, host))
 
         return tokenToString(savedToken)
     }

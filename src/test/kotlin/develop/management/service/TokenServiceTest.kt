@@ -5,9 +5,8 @@ import develop.management.domain.document.Room
 import develop.management.domain.dto.CreateOptions
 import develop.management.domain.dto.RoomConfig
 import develop.management.domain.dto.TokenConfig
-import develop.management.repository.KeyRepository
-import develop.management.repository.RoomRepository
-import develop.management.repository.TokenRepository
+import develop.management.repository.mongo.*
+import develop.management.rpc.RpcService
 import develop.management.util.cipher.Cipher
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
@@ -15,8 +14,14 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import java.util.*
 
 /**
@@ -24,20 +29,24 @@ import java.util.*
  * Authenticator, authorization, validation error는 고려하지 않는다
  * -> Authenticator, authorization, vadlidation error는 따로 테스트 클래스를 만든다
  */
-@SpringBootTest
+@SpringBootTest(classes = [TestReactiveMongoConfig::class, MongoTokenRepository::class, MongoRoomRepository::class, MongoKeyRepository::class, TokenService::class, RpcService::class])
+@EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
 internal class TokenServiceTest {
 
     @Autowired
-    private lateinit var tokenRepository: TokenRepository
-
-    @Autowired
-    private lateinit var roomRepository: RoomRepository
-
-    @Autowired
-    private lateinit var keyRepository: KeyRepository
-
-    @Autowired
     private lateinit var tokenService: TokenService
+
+    @Autowired
+    private lateinit var tokenRepository: MongoTokenRepository
+
+    @Autowired
+    private lateinit var roomRepository: MongoRoomRepository
+
+    @Autowired
+    private lateinit var keyRepository: MongoKeyRepository
+
+    @MockBean
+    private lateinit var rpcService: RpcService
 
     private lateinit var room: Room
 
@@ -67,14 +76,26 @@ internal class TokenServiceTest {
      * @expected: DB에 token이 생성되고, 생성된 token를 반환받는다
      */
     @Test
-    fun createTest() {
+    fun createTest() = runBlocking {
         val tokenRequest = TokenConfig("user", "presenter")
-        val result = runBlocking { tokenService.create(serviceId, room.getId(), tokenRequest.user, tokenRequest.role, tokenRequest.preference) }
+
+        val jsonResult = JSONObject()
+        jsonResult.put("ip", "http://test")
+        jsonResult.put("hostname", "test")
+        jsonResult.put("port", 12345)
+        jsonResult.put("ssl", true)
+        jsonResult.put("state", 2)
+        jsonResult.put("max_load", 3)
+        jsonResult.put("capacity", 3)
+
+        Mockito.`when`(rpcService.schedulePortal("testCode", tokenRequest.preference)).thenReturn(Pair("success", jsonResult.toString()))
+
+        val result = runBlocking { tokenService.create(serviceId, room.getId(), tokenRequest.user, tokenRequest.role, tokenRequest.preference, "testCode") }
         Assertions.assertNotNull(result)
         println(result)
         val tokenStr = Base64.getDecoder().decode(result).decodeToString()
         val tokenId = JSONObject(tokenStr).getString("tokenId")
-        val token = runBlocking { tokenRepository.findById(tokenId) }?: throw AssertionError("Token does not exist")
+        val token = tokenRepository.findById(tokenId)?: throw AssertionError("Token does not exist")
         Assertions.assertEquals(room.getId(), token.getRoomId())
         Assertions.assertEquals(serviceId, token.getServiceId())
     }
