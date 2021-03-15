@@ -23,9 +23,9 @@ import org.springframework.data.mongodb.core.SimpleReactiveMongoDatabaseFactory
 @PropertySource(value = ["classpath:application.yml"])
 class TestReactiveMongoConfig(private val environment: Environment) {
 
-    private val uri = environment.getProperty("spring.data.mongodb.uri", "mongodb://localhost:27017")
+    private val uri = environment.getProperty("spring.data.mongodb.uri", "mongodb://localhost:12345")
     private val ip = environment.getProperty("spring.data.mongodb.ip", String::class.java, "localhost")
-    private val port = environment.getProperty("spring.data.mongodb.port", Int::class.java,27017)
+    private val port = environment.getProperty("spring.data.mongodb.port", Int::class.java,12345)
     private val databaseName = environment.getProperty("spring.data.mongodb.database", "test")
 
     @Bean(initMethod = "start", destroyMethod = "stop")

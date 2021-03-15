@@ -42,6 +42,8 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("io.projectreactor:reactor-test")
 	testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo")
+	testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
+	testImplementation("org.mockito:mockito-inline:2.21.0")
 }
 
 dependencyManagement {

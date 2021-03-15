@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema
  */
 data class ParticipantDetail(
     @Schema(description = "Unique identifier of the participant", nullable = false)
-    val _id: String,
+    val id: String,
     @Schema(description = "Unique identifier of the participant", nullable = false)
     val role: String,
     @Schema(description = "User id of the participant", nullable = false)

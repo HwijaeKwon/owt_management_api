@@ -1,9 +1,9 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://localhost:27017
+      uri: mongodb://localhost:27027
       host: localhost
-      port: 27017
+      port: 27027
       database: test
 
   cloud:

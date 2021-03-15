@@ -1,5 +1,8 @@
 package develop.management.service
 
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.eq
+import com.nhaarman.mockitokotlin2.whenever
 import develop.management.domain.document.Key
 import develop.management.domain.document.Room
 import develop.management.domain.dto.CreateOptions
@@ -14,9 +17,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
@@ -88,9 +88,9 @@ internal class TokenServiceTest {
         jsonResult.put("max_load", 3)
         jsonResult.put("capacity", 3)
 
-        Mockito.`when`(rpcService.schedulePortal("testCode", tokenRequest.preference)).thenReturn(Pair("success", jsonResult.toString()))
+        whenever(rpcService.schedulePortal(any(), eq(tokenRequest.preference))).thenReturn(Pair("success", jsonResult.toString()))
 
-        val result = runBlocking { tokenService.create(serviceId, room.getId(), tokenRequest.user, tokenRequest.role, tokenRequest.preference, "testCode") }
+        val result = runBlocking { tokenService.create(serviceId, room.getId(), tokenRequest.user, tokenRequest.role, tokenRequest.preference) }
         Assertions.assertNotNull(result)
         println(result)
         val tokenStr = Base64.getDecoder().decode(result).decodeToString()
@@ -120,6 +120,17 @@ internal class TokenServiceTest {
         runBlocking {
             keyRepository.deleteById(0)
             val tokenRequest = TokenConfig("user", "presenter")
+
+            val jsonResult = JSONObject()
+            jsonResult.put("ip", "http://test")
+            jsonResult.put("hostname", "test")
+            jsonResult.put("port", 12345)
+            jsonResult.put("ssl", true)
+            jsonResult.put("state", 2)
+            jsonResult.put("max_load", 3)
+            jsonResult.put("capacity", 3)
+            whenever(rpcService.schedulePortal(any(), eq(tokenRequest.preference))).thenReturn(Pair("success", jsonResult.toString()))
+
             val exception = Assertions.assertThrows(IllegalStateException::class.java) { runBlocking { tokenService.create(serviceId, room.getId(), tokenRequest.user, tokenRequest.role, tokenRequest.preference) } }
             Assertions.assertEquals("Key does not exist", exception.message)
         }
