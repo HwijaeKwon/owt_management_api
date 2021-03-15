@@ -10,6 +10,7 @@ import develop.management.domain.dto.RoomConfig
 import develop.management.domain.dto.TokenConfig
 import develop.management.repository.mongo.*
 import develop.management.rpc.RpcService
+import develop.management.rpc.RpcServiceResult
 import develop.management.util.cipher.Cipher
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
@@ -88,7 +89,7 @@ internal class TokenServiceTest {
         jsonResult.put("max_load", 3)
         jsonResult.put("capacity", 3)
 
-        whenever(rpcService.schedulePortal(any(), eq(tokenRequest.preference))).thenReturn(Pair("success", jsonResult.toString()))
+        whenever(rpcService.schedulePortal(any(), eq(tokenRequest.preference))).thenReturn(RpcServiceResult("success", jsonResult.toString()))
 
         val result = runBlocking { tokenService.create(serviceId, room.getId(), tokenRequest.user, tokenRequest.role, tokenRequest.preference) }
         Assertions.assertNotNull(result)
@@ -129,7 +130,7 @@ internal class TokenServiceTest {
             jsonResult.put("state", 2)
             jsonResult.put("max_load", 3)
             jsonResult.put("capacity", 3)
-            whenever(rpcService.schedulePortal(any(), eq(tokenRequest.preference))).thenReturn(Pair("success", jsonResult.toString()))
+            whenever(rpcService.schedulePortal(any(), eq(tokenRequest.preference))).thenReturn(RpcServiceResult("success", jsonResult.toString()))
 
             val exception = Assertions.assertThrows(IllegalStateException::class.java) { runBlocking { tokenService.create(serviceId, room.getId(), tokenRequest.user, tokenRequest.role, tokenRequest.preference) } }
             Assertions.assertEquals("Key does not exist", exception.message)

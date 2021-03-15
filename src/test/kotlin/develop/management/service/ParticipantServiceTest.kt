@@ -7,6 +7,7 @@ import develop.management.domain.dto.ParticipantDetail
 import develop.management.domain.dto.Permission
 import develop.management.domain.dto.PermissionUpdate
 import develop.management.rpc.RpcService
+import develop.management.rpc.RpcServiceResult
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.json.JSONArray
@@ -39,7 +40,7 @@ internal class ParticipantServiceTest {
         val jsonResult = JSONArray()
         jsonResult.put(JSONObject(jsonParticipantDetail))
         jsonResult.put(JSONObject(jsonParticipantDetail2))
-        whenever(rpcService.getParticipantsInRoom("roomId")).thenReturn(Pair("success", jsonResult.toString()))
+        whenever(rpcService.getParticipantsInRoom("roomId")).thenReturn(RpcServiceResult("success", jsonResult.toString()))
 
         val result = participantService.findOne("roomId", "participantId")
 
@@ -58,7 +59,7 @@ internal class ParticipantServiceTest {
      */
     @Test
     fun findOneInNotExistRoomTest() = runBlocking {
-        whenever(rpcService.getParticipantsInRoom("roomId")).thenReturn(Pair("error", "Room not found"))
+        whenever(rpcService.getParticipantsInRoom("roomId")).thenReturn(RpcServiceResult("error", "Room not found"))
 
         val exception = assertThrows(IllegalStateException::class.java) { runBlocking { participantService.findOne("roomId", "participantId") } }
 
@@ -79,7 +80,7 @@ internal class ParticipantServiceTest {
         val jsonResult = JSONArray()
         jsonResult.put(JSONObject(jsonParticipantDetail))
         jsonResult.put(JSONObject(jsonParticipantDetail2))
-        whenever(rpcService.getParticipantsInRoom("roomId")).thenReturn(Pair("success", jsonResult.toString()))
+        whenever(rpcService.getParticipantsInRoom("roomId")).thenReturn(RpcServiceResult("success", jsonResult.toString()))
 
         val exception = assertThrows(IllegalArgumentException::class.java) { runBlocking { participantService.findOne("roomId", "participantId3") } }
 
@@ -100,7 +101,7 @@ internal class ParticipantServiceTest {
         val jsonResult = JSONArray()
         jsonResult.put(JSONObject(jsonParticipantDetail))
         jsonResult.put(JSONObject(jsonParticipantDetail2))
-        whenever(rpcService.getParticipantsInRoom("roomId")).thenReturn(Pair("success", jsonResult.toString()))
+        whenever(rpcService.getParticipantsInRoom("roomId")).thenReturn(RpcServiceResult("success", jsonResult.toString()))
 
         val result = participantService.findAll("roomId")
 
@@ -122,7 +123,7 @@ internal class ParticipantServiceTest {
         val permissionUpdate = listOf(PermissionUpdate("replace", "path", true))
         val participantDetail = ParticipantDetail("participantId", "role", "user", Permission(Permission.Publish(true, true), Permission.Subscribe(true ,true)))
         val jsonParticipantDetail = Gson().toJson(participantDetail)
-        whenever(rpcService.updateParticipant("roomId", "participantId", permissionUpdate)).thenReturn(Pair("success", jsonParticipantDetail.toString()))
+        whenever(rpcService.updateParticipant("roomId", "participantId", permissionUpdate)).thenReturn(RpcServiceResult("success", jsonParticipantDetail.toString()))
 
         val result = participantService.update("roomId", "participantId", permissionUpdate)
 
@@ -139,7 +140,7 @@ internal class ParticipantServiceTest {
      */
     @Test
     fun deleteTest() = runBlocking {
-        whenever(rpcService.deleteParticipant("roomId", "participantId")).thenReturn(Pair("success", "Success"))
+        whenever(rpcService.deleteParticipant("roomId", "participantId")).thenReturn(RpcServiceResult("success", "Success"))
 
         val result = participantService.delete("roomId", "participantId")
 

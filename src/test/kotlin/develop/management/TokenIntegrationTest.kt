@@ -1,6 +1,8 @@
 package develop.management
 
 import com.google.gson.GsonBuilder
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.whenever
 import develop.management.domain.document.Key
 import develop.management.domain.document.Room
 import develop.management.domain.document.Service
@@ -12,6 +14,10 @@ import develop.management.repository.KeyRepository
 import develop.management.repository.RoomRepository
 import develop.management.repository.ServiceRepository
 import develop.management.repository.TokenRepository
+import develop.management.repository.mongo.ReactiveMongoConfig
+import develop.management.repository.mongo.TestReactiveMongoConfig
+import develop.management.rpc.RpcService
+import develop.management.rpc.RpcServiceResult
 import develop.management.util.cipher.Cipher
 import develop.management.util.error.ErrorBody
 import kotlinx.coroutines.runBlocking
@@ -21,9 +27,14 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.web.server.LocalServerPort
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.test.web.reactive.server.WebTestClient
 import java.util.*
@@ -33,7 +44,10 @@ import java.util.*
  * Authentication, authorization, validation error는 고려하지 않는다
  * -> Authentication, authorization, vadlidation error는 따로 테스트 객체를 만든다
  */
+@ActiveProfiles("dev")
 @SpringBootTest(classes = [DevelopApplication::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
+@Import(TestReactiveMongoConfig::class)
 class TokenIntegrationTest {
 
     @Autowired
@@ -48,6 +62,9 @@ class TokenIntegrationTest {
     @Autowired
     private lateinit var tokenRepository: TokenRepository
 
+    @MockBean
+    private lateinit var rpcService: RpcService
+
     @LocalServerPort
     private var port: Int = 0
 
@@ -58,21 +75,28 @@ class TokenIntegrationTest {
     private lateinit var room: Room
 
     @BeforeEach
-    fun init() {
-        val key = runBlocking {
-            keyRepository.save(Key.createKey())
-            val serviceName = "service_integration_test@" + Cipher.generateByteArray(1).decodeToString()
-            val key = Cipher.generateKey(128, "HmacSHA256")
-            if(serviceRepository.existsByName(serviceName)) throw AssertionError("Service already exists")
-            service = serviceRepository.save(Service.create(ServiceConfig(serviceName, key)))
+    fun init() = runBlocking {
+        val jsonResult = JSONObject()
+        jsonResult.put("ip", "http://test")
+        jsonResult.put("hostname", "test")
+        jsonResult.put("port", 12345)
+        jsonResult.put("ssl", true)
+        jsonResult.put("state", 2)
+        jsonResult.put("max_load", 3)
+        jsonResult.put("capacity", 3)
+        whenever(rpcService.schedulePortal(any(), any())).thenReturn(RpcServiceResult("success", jsonResult.toString()))
 
-            val roomName = "service_integration_test@" + Cipher.generateByteArray(1).decodeToString()
-            val options = CreateOptions()
-            room = roomRepository.save(Room.create(RoomConfig(roomName, options)))
-            service.addRoom(room.getId())
-            service = serviceRepository.save(service)
-            return@runBlocking key
-        }
+        keyRepository.save(Key.createKey())
+        val serviceName = "service_integration_test@" + Cipher.generateByteArray(1).decodeToString()
+        val key = Cipher.generateKey(128, "HmacSHA256")
+        if(serviceRepository.existsByName(serviceName)) throw AssertionError("Service already exists")
+        service = serviceRepository.save(Service.create(ServiceConfig(serviceName, key)))
+
+        val roomName = "service_integration_test@" + Cipher.generateByteArray(1).decodeToString()
+        val options = CreateOptions()
+        room = roomRepository.save(Room.create(RoomConfig(roomName, options)))
+        service.addRoom(room.getId())
+        service = serviceRepository.save(service)
 
         val cnonce = "cnonce"
         val timestamp = Date().toString()
@@ -84,16 +108,18 @@ class TokenIntegrationTest {
                 "mauth_cnonce=" + cnonce + "," +
                 "mauth_timestamp=" + timestamp + "," +
                 "mauth_signature=" + signature
+
+        return@runBlocking
     }
 
     @AfterEach
-    fun close() {
-        runBlocking {
-            serviceRepository.deleteAll()
-            roomRepository.deleteAll()
-            tokenRepository.deleteAll()
-            keyRepository.deleteAll()
-        }
+    fun close() = runBlocking {
+        serviceRepository.deleteAll()
+        roomRepository.deleteAll()
+        tokenRepository.deleteAll()
+        keyRepository.deleteAll()
+
+        return@runBlocking
     }
 
     /** 1. Authentication 테스트 **/

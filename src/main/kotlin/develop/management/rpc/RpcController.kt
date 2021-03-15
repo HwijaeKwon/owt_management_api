@@ -34,7 +34,7 @@ class RpcController(private val environment: Environment) {
     private val maxCorrID = environment.getProperty("rpc.maxCorrID", Long::class.java, 10000)
 
     // 메세지 수신 sink를 관리하는 map
-    private val processorMap: HashMap<Long, Sinks.Many<Pair<String, String>>> = hashMapOf()
+    private val processorMap: HashMap<Long, Sinks.Many<RpcReply>> = hashMapOf()
 
     // 메세지 전송 시 사용하는 sink
     private val sendProcessor = Sinks.many().unicast().onBackpressureBuffer<Message<String>>()
@@ -43,7 +43,7 @@ class RpcController(private val environment: Environment) {
         processorMap.remove(corrID)
     }
 
-    suspend fun sendMessage(routingKey: String, method: String, args: JSONArray, corrId: Long? = null): Pair<Flux<Pair<String, String>>, Long> {
+    suspend fun sendMessage(routingKey: String, method: String, args: JSONArray, corrId: Long? = null): RpcResult {
         val corrID = corrId?: let {
             val candidate = Random.nextLong(maxCorrID)
             processorMap[candidate]?.run { throw IllegalStateException("Generate Corr ID fail") }
@@ -60,7 +60,7 @@ class RpcController(private val environment: Environment) {
             .setHeader("routingKey", routingKey)
             .build()
 
-        return Pair(processorMap[corrID]!!.asFlux(), corrID)
+        return RpcResult(processorMap[corrID]!!.asFlux(), corrID)
                 .apply { sendProcessor.emitNext(msg) { _, emitResult ->
                     if (emitResult == Sinks.EmitResult.FAIL_NON_SERIALIZED) {
                         LockSupport.parkNanos(10)
@@ -80,7 +80,7 @@ class RpcController(private val environment: Environment) {
         val corrID = jsonMessage.getLong("corrID")
         val data = jsonMessage.getString("data")
         val err = if(jsonMessage.has("err")) jsonMessage.getString("err") else ""
-        processorMap[corrID]?.emitNext(Pair(data, err), Sinks.EmitFailureHandler.FAIL_FAST)
+        processorMap[corrID]?.emitNext(RpcReply(data, err), Sinks.EmitFailureHandler.FAIL_FAST)
             ?: throw IllegalStateException("Receiver processor not found: $corrID")
     }
 

@@ -7,6 +7,7 @@ import develop.management.domain.MediaInfo
 import develop.management.domain.Region
 import develop.management.domain.dto.*
 import develop.management.rpc.RpcService
+import develop.management.rpc.RpcServiceResult
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.json.JSONArray
@@ -38,7 +39,7 @@ internal class StreamServiceTest {
         jsonResult.put(JSONObject(Gson().toJson(streamInfo)))
         jsonResult.put(JSONObject(Gson().toJson(streamInfo2)))
 
-        whenever(rpcService.getStreamsInRoom("roomId")).thenReturn(Pair("success", jsonResult.toString()))
+        whenever(rpcService.getStreamsInRoom("roomId")).thenReturn(RpcServiceResult("success", jsonResult.toString()))
 
         val result = streamService.findOne("roomId", "streamId")
 
@@ -58,7 +59,7 @@ internal class StreamServiceTest {
     @Test
     fun findOneInNotExistRoomTest() = runBlocking {
 
-        whenever(rpcService.getStreamsInRoom("roomId")).thenReturn(Pair("error", "Room not found"))
+        whenever(rpcService.getStreamsInRoom("roomId")).thenReturn(RpcServiceResult("error", "Room not found"))
 
         val exception = assertThrows(IllegalStateException::class.java) { runBlocking { streamService.findOne("roomId", "streamId") } }
 
@@ -78,7 +79,7 @@ internal class StreamServiceTest {
         jsonResult.put(JSONObject(Gson().toJson(streamInfo)))
         jsonResult.put(JSONObject(Gson().toJson(streamInfo2)))
 
-        whenever(rpcService.getStreamsInRoom("roomId")).thenReturn(Pair("success", jsonResult.toString()))
+        whenever(rpcService.getStreamsInRoom("roomId")).thenReturn(RpcServiceResult("success", jsonResult.toString()))
 
         val exception = assertThrows(IllegalArgumentException::class.java) { runBlocking { streamService.findOne("roomId", "streamId3") } }
 
@@ -99,7 +100,7 @@ internal class StreamServiceTest {
         jsonResult.put(JSONObject(Gson().toJson(streamInfo)))
         jsonResult.put(JSONObject(Gson().toJson(streamInfo2)))
 
-        whenever(rpcService.getStreamsInRoom("roomId")).thenReturn(Pair("success", jsonResult.toString()))
+        whenever(rpcService.getStreamsInRoom("roomId")).thenReturn(RpcServiceResult("success", jsonResult.toString()))
 
         val result = streamService.findAll("roomId")
 
@@ -121,7 +122,7 @@ internal class StreamServiceTest {
         val streamUpdate = StreamUpdate("replace", "path", true)
         val streamInfo = StreamInfo("streamId", "forward", MediaInfo(true, true), MixedInfo("label", listOf(Layout("stream", Region("id", "shape", Region.Area(1,1,1,1))))))
 
-        whenever(rpcService.controlStream("roomId", "streamId", listOf(streamUpdate))).thenReturn(Pair("success", JSONObject(Gson().toJson(streamInfo)).toString()))
+        whenever(rpcService.controlStream("roomId", "streamId", listOf(streamUpdate))).thenReturn(RpcServiceResult("success", JSONObject(Gson().toJson(streamInfo)).toString()))
 
         val result = streamService.update("roomId", "streamId", listOf(streamUpdate))
 
@@ -139,7 +140,7 @@ internal class StreamServiceTest {
     @Test
     fun deleteTest() = runBlocking {
 
-        whenever(rpcService.deleteStream("roomId", "streamId")).thenReturn(Pair("success", "Success"))
+        whenever(rpcService.deleteStream("roomId", "streamId")).thenReturn(RpcServiceResult("success", "Success"))
 
         val result = streamService.delete("roomId", "streamId")
 
@@ -155,14 +156,13 @@ internal class StreamServiceTest {
     @Test
     fun addStreamingInTest() = runBlocking {
 
-        val pub_req = StreamingInRequest(StreamingInRequest.Connection("url", "tcp", 8182), StreamingInRequest.Media(true, true), "type")
+        val pubReq = StreamingInRequest(StreamingInRequest.Connection("url", "tcp", 8182), StreamingInRequest.Media(true, true), "type")
 
-        val streamUpdate = StreamUpdate("replace", "path", true)
         val streamInfo = StreamInfo("streamId", "forward", MediaInfo(true, true), MixedInfo("label", listOf(Layout("stream", Region("id", "shape", Region.Area(1,1,1,1))))))
 
-        whenever(rpcService.addStreamingIn("roomId", pub_req)).thenReturn(Pair("success", JSONObject(Gson().toJson(streamInfo)).toString()))
+        whenever(rpcService.addStreamingIn("roomId", pubReq)).thenReturn(RpcServiceResult("success", JSONObject(Gson().toJson(streamInfo)).toString()))
 
-        val result = streamService.addStreamingIn("roomId", pub_req)
+        val result = streamService.addStreamingIn("roomId", pubReq)
 
         assertThat(result).isNotNull
 

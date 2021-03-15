@@ -14,6 +14,7 @@ import develop.management.repository.mongo.MongoRoomRepository
 import develop.management.repository.mongo.MongoServiceRepository
 import develop.management.repository.mongo.TestReactiveMongoConfig
 import develop.management.rpc.RpcService
+import develop.management.rpc.RpcServiceResult
 import develop.management.util.cipher.Cipher
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.AfterEach
@@ -83,7 +84,7 @@ internal class RoomServiceTest {
         val options = CreateOptions()
         val room = Room.create(RoomConfig("create_test_room", options)).let { roomRepository.save(it) }
 
-        Mockito.`when`(rpcService.notifySipPortal("create", room)).thenReturn(Pair("success", "Success"))
+        Mockito.`when`(rpcService.notifySipPortal("create", room)).thenReturn(RpcServiceResult("success", "Success"))
 
         val result = roomService.create(service.getId(), room)
         Assertions.assertNotNull(result)
@@ -303,7 +304,7 @@ internal class RoomServiceTest {
     @Test
     fun deleteTest() = runBlocking {
 
-        Mockito.`when`(rpcService.deleteRoom(room.getId())).thenReturn(Pair("success", "Success"))
+        Mockito.`when`(rpcService.deleteRoom(room.getId())).thenReturn(RpcServiceResult("success", "Success"))
 
         val result = roomService.delete(service.getId(), room.getId())
         Assertions.assertNotNull(result)

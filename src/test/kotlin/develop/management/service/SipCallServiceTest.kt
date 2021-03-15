@@ -10,6 +10,7 @@ import develop.management.domain.dto.SipCall
 import develop.management.domain.dto.SipCallRequest
 import develop.management.domain.dto.StreamInfo
 import develop.management.rpc.RpcService
+import develop.management.rpc.RpcServiceResult
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.json.JSONArray
@@ -39,7 +40,7 @@ internal class SipCallServiceTest {
                 StreamInfo("id", "type", MediaInfo(true, true), true),
                 SipCall.Output("id", SipOutMedia(SipOutMedia.SipOutAudio("from"), true)))
 
-        whenever(rpcService.addSipCall("roomId", sipCallRequest)).thenReturn(Pair("success", Gson().toJson(sipCall).toString()))
+        whenever(rpcService.addSipCall("roomId", sipCallRequest)).thenReturn(RpcServiceResult("success", Gson().toJson(sipCall).toString()))
 
         val result = sipCallService.create("roomId", sipCallRequest)
 
@@ -70,7 +71,7 @@ internal class SipCallServiceTest {
         jsonArray.put(JSONObject(Gson().toJson(sipCall)))
         jsonArray.put(JSONObject(Gson().toJson(sipCall2)))
 
-        whenever(rpcService.getSipCallsInRoom("roomId")).thenReturn(Pair("success", jsonArray.toString()))
+        whenever(rpcService.getSipCallsInRoom("roomId")).thenReturn(RpcServiceResult("success", jsonArray.toString()))
 
         val result = sipCallService.findAll("roomId")
 
@@ -95,7 +96,7 @@ internal class SipCallServiceTest {
 
         val cmds = listOf(MediaOutControlInfo("replace", "path", true))
 
-        whenever(rpcService.updateSipCall("roomId", "sipId", cmds)).thenReturn(Pair("success", Gson().toJson(sipCall).toString()))
+        whenever(rpcService.updateSipCall("roomId", "sipId", cmds)).thenReturn(RpcServiceResult("success", Gson().toJson(sipCall).toString()))
 
         val result = sipCallService.update("roomId", "sipId", cmds)
 
@@ -115,7 +116,7 @@ internal class SipCallServiceTest {
     @Test
     fun deleteTest() = runBlocking {
 
-        whenever(rpcService.deleteSipCall("roomId", "sipId")).thenReturn(Pair("success", "Success"))
+        whenever(rpcService.deleteSipCall("roomId", "sipId")).thenReturn(RpcServiceResult("success", "Success"))
 
         val result = sipCallService.delete("roomId", "sipId")
 
