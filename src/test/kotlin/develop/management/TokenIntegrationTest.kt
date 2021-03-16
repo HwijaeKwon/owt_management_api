@@ -42,8 +42,8 @@ import java.util.*
  * Authentication, authorization, validation error는 고려하지 않는다
  * -> Authentication, authorization, vadlidation error는 따로 테스트 객체를 만든다
  */
-//@ActiveProfiles("dev") //application.yml에서 설정해둠
-@SpringBootTest(classes = [DevelopApplication::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
 @Import(TestReactiveMongoConfig::class)
 class TokenIntegrationTest {

@@ -1,10 +1,10 @@
 package develop.management.auth
 
 import com.google.gson.GsonBuilder
-import develop.management.ManagementInitializer
 import develop.management.domain.document.Service
 import develop.management.domain.dto.ServiceConfig
 import develop.management.repository.ServiceRepository
+import develop.management.repository.mongo.TestReactiveMongoConfig
 import develop.management.util.cipher.Cipher
 import develop.management.util.error.ErrorBody
 import kotlinx.coroutines.runBlocking
@@ -14,8 +14,12 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.server.RouterFunction
 import org.springframework.web.reactive.function.server.ServerResponse
@@ -23,7 +27,10 @@ import org.springframework.web.reactive.function.server.bodyValueAndAwait
 import org.springframework.web.reactive.function.server.coRouter
 import java.util.*
 
+@ActiveProfiles("test")
 @SpringBootTest
+@EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
+@Import(TestReactiveMongoConfig::class)
 internal class ServiceAuthenticatorTest {
 
     @Autowired

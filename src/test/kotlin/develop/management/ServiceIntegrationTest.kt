@@ -25,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBodyList
 import java.util.*
@@ -34,7 +35,8 @@ import java.util.*
  * Authentication, authorization, validation error는 고려하지 않는다
  * -> Authentication, authorization, vadlidation error는 따로 테스트 객체를 만든다
  */
-@SpringBootTest(classes = [DevelopApplication::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
 @Import(TestReactiveMongoConfig::class)
 class ServiceIntegrationTest {

@@ -6,6 +6,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Profile
 import org.springframework.context.annotation.PropertySource
 import org.springframework.core.env.Environment
 import org.springframework.messaging.Message
@@ -23,8 +24,8 @@ import java.util.function.Supplier
 import kotlin.collections.HashMap
 import kotlin.random.Random
 
+@Profile("dev")
 @Component
-@PropertySource(value = ["classpath:application.yml"])
 class RpcController(private val environment: Environment) {
     private final val logger = LoggerFactory.getLogger(this.javaClass.name)
 

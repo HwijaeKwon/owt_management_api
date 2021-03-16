@@ -14,9 +14,8 @@ import org.springframework.data.mongodb.SessionSynchronization
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.transaction.reactive.TransactionalOperator
 
-@Profile("production")
+@Profile("dev")
 @Configuration
-@PropertySource(value = ["classpath:application.yml"])
 class ReactiveMongoConfig(private val environment: Environment) {
 
     private val uri = environment.getProperty("spring.data.mongodb.uri", "mongodb://localhost:27017")

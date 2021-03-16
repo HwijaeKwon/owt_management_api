@@ -23,6 +23,8 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.annotation.Import
+import org.springframework.test.context.ActiveProfiles
 import java.util.*
 
 /**
@@ -30,8 +32,11 @@ import java.util.*
  * Authenticator, authorization, validation error는 고려하지 않는다
  * -> Authenticator, authorization, vadlidation error는 따로 테스트 클래스를 만든다
  */
-@SpringBootTest(classes = [TestReactiveMongoConfig::class, MongoTokenRepository::class, MongoRoomRepository::class, MongoKeyRepository::class, TokenService::class, RpcService::class])
+
+@ActiveProfiles("test")
+@SpringBootTest(classes = [MongoTokenRepository::class, MongoRoomRepository::class, MongoKeyRepository::class, TokenService::class, RpcService::class])
 @EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
+@Import(TestReactiveMongoConfig::class)
 internal class TokenServiceTest {
 
     @Autowired

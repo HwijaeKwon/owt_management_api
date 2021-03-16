@@ -11,7 +11,6 @@ import de.flapdoodle.embed.mongo.distribution.Version
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Profile
-import org.springframework.context.annotation.PropertySource
 import org.springframework.core.env.Environment
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory
 import org.springframework.data.mongodb.ReactiveMongoTransactionManager
@@ -20,9 +19,8 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.data.mongodb.core.SimpleReactiveMongoDatabaseFactory
 
-@Profile("dev")
+@Profile("test")
 @TestConfiguration
-@PropertySource(value = ["classpath:application.yml"])
 class TestReactiveMongoConfig(private val environment: Environment) {
 
     private val uri = environment.getProperty("spring.data.mongodb.uri", "mongodb://localhost:12345")

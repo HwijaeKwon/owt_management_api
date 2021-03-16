@@ -44,8 +44,7 @@ dependencies {
 	testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo")
 	testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
 	testImplementation("org.mockito:mockito-inline:2.21.0")
-	testImplementation("org.testcontainers:testcontainers:1.15.2")
-	testImplementation("org.testcontainers:junit-jupiter:1.12.0")
+	testImplementation("io.arivera.oss:embedded-rabbitmq:1.4.0")
 }
 
 dependencyManagement {

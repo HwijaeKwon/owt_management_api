@@ -1,10 +1,12 @@
 spring:
+  profiles: test
   data:
     mongodb:
-      uri: mongodb://192.168.9.14:12345
-      database: owtdb
-      username: test
-      password: test1234
+      uri: mongodb://localhost:27027
+      host: localhost
+      port: 27027
+      database: test
+
   cloud:
     function:
         definition: tx;rx
@@ -22,7 +24,6 @@ spring:
           rx-in-0:
             consumer:
               exchange-type: direct
-              #management api가 scalable하려면 중복되지 않는 값을 사용해야 한다
               binding-routing-key: 'management'
           tx-out-0:
             producer:
@@ -32,14 +33,10 @@ spring:
               routing-key-expression: headers['routingKey']
 
   rabbitmq:
-    host: 192.168.9.14
-    port: 54321
-    username: test
-    password: test1234
-
-server:
-  address: 192.168.9.13
-  port: 8080
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
 
 #mongodb retry
 mongodb:
