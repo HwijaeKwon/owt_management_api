@@ -42,7 +42,7 @@ class TestReactiveMongoConfig(private val environment: Environment) {
         return starter.prepare(mongodConfig)
     }
 
-    @Bean
+    @Bean(destroyMethod = "close")
     fun reactiveMongoClient(): MongoClient {
         val connectionString = ConnectionString(uri)
         val settings = MongoClientSettings.builder()

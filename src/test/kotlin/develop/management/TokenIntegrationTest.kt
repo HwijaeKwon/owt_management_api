@@ -14,7 +14,6 @@ import develop.management.repository.KeyRepository
 import develop.management.repository.RoomRepository
 import develop.management.repository.ServiceRepository
 import develop.management.repository.TokenRepository
-import develop.management.repository.mongo.ReactiveMongoConfig
 import develop.management.repository.mongo.TestReactiveMongoConfig
 import develop.management.rpc.RpcService
 import develop.management.rpc.RpcServiceResult
@@ -35,7 +34,6 @@ import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.test.web.reactive.server.WebTestClient
 import java.util.*
 
@@ -44,7 +42,7 @@ import java.util.*
  * Authentication, authorization, validation error는 고려하지 않는다
  * -> Authentication, authorization, vadlidation error는 따로 테스트 객체를 만든다
  */
-@ActiveProfiles("dev")
+//@ActiveProfiles("dev") //application.yml에서 설정해둠
 @SpringBootTest(classes = [DevelopApplication::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
 @Import(TestReactiveMongoConfig::class)
@@ -139,6 +137,7 @@ class TokenIntegrationTest {
             if (roomRepository.existsById(roomId)) throw AssertionError("Room already exists")
             service = serviceRepository.save(service)
         }
+
         val tokenRequest = TokenConfig("user", "presenter")
         val result = WebTestClient
                 .bindToServer()

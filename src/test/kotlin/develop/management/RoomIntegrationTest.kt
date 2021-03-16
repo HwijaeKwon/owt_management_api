@@ -1,6 +1,8 @@
 package develop.management
 
 import com.google.gson.GsonBuilder
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.whenever
 import develop.management.domain.*
 import develop.management.domain.document.Room
 import develop.management.domain.document.Service
@@ -10,6 +12,9 @@ import develop.management.domain.enum.Video
 import develop.management.repository.KeyRepository
 import develop.management.repository.RoomRepository
 import develop.management.repository.ServiceRepository
+import develop.management.repository.mongo.TestReactiveMongoConfig
+import develop.management.rpc.RpcService
+import develop.management.rpc.RpcServiceResult
 import develop.management.util.cipher.Cipher
 import develop.management.util.error.ErrorBody
 import kotlinx.coroutines.runBlocking
@@ -19,8 +24,12 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.web.server.LocalServerPort
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBodyList
@@ -30,6 +39,8 @@ import java.util.*
  * Room 관련 요청 통합 테스트 클래스
  */
 @SpringBootTest(classes = [DevelopApplication::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
+@Import(TestReactiveMongoConfig::class)
 class RoomIntegrationTest {
     @Autowired
     private lateinit var roomRepository: RoomRepository
@@ -42,6 +53,9 @@ class RoomIntegrationTest {
 
     @Autowired
     private lateinit var initializer: ManagementInitializer
+
+    @MockBean
+    private lateinit var rpcService: RpcService
 
     @LocalServerPort
     private var port: Int = 0
@@ -56,6 +70,10 @@ class RoomIntegrationTest {
 
     @BeforeEach
     fun init() = runBlocking {
+
+        whenever(rpcService.notifySipPortal(any(), any())).thenReturn(RpcServiceResult("success", "Success"))
+        whenever(rpcService.deleteRoom(any())).thenReturn(RpcServiceResult("success", "Success"))
+
         initializer.init()
         serviceRepository.findById(initializer.getSuperServiceId())?: throw AssertionError("SuperService dose not exist")
 

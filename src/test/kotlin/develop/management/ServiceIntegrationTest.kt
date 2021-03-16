@@ -9,6 +9,7 @@ import develop.management.domain.dto.ServiceConfig
 import develop.management.repository.KeyRepository
 import develop.management.repository.RoomRepository
 import develop.management.repository.ServiceRepository
+import develop.management.repository.mongo.TestReactiveMongoConfig
 import develop.management.util.cipher.Cipher
 import develop.management.util.error.ErrorBody
 import kotlinx.coroutines.runBlocking
@@ -18,8 +19,11 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.web.server.LocalServerPort
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBodyList
@@ -31,6 +35,8 @@ import java.util.*
  * -> Authentication, authorization, vadlidation error는 따로 테스트 객체를 만든다
  */
 @SpringBootTest(classes = [DevelopApplication::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
+@Import(TestReactiveMongoConfig::class)
 class ServiceIntegrationTest {
 
     @Autowired
