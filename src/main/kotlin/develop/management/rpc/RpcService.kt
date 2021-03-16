@@ -104,7 +104,7 @@ class RpcService(private val rpcController: RpcController) {
         //Validate 과정은 validator에서 수행한다
         val (status, controller) = getRoomController(roomId)
         if(status == "error") return RpcServiceResult("error", controller)
-        val (stream, corrID) = rpcController.sendMessage(controller, "destroy", JSONArray())
+        val (stream, corrID) = rpcController.sendMessage(controller, "getParticipants", JSONArray())
         return try {
             val (participant, error) = stream.timeout(Duration.ofSeconds(3)).toMono().awaitSingle()
             if(participant == "error") RpcServiceResult("error", error) else RpcServiceResult("success", participant)
