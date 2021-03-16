@@ -231,7 +231,7 @@ class RpcService(private val rpcController: RpcController) {
         val (status, controller) = getRoomController(roomId)
         if(status == "error") return RpcServiceResult("error", controller)
 
-        val (stream, corrID) = rpcController.sendMessage(controller, "controlStream", JSONArray().put(type))
+        val (stream, corrID) = rpcController.sendMessage(controller, "getSubscriptions", JSONArray().put(type))
         return try {
             val (subscription, error) = stream.timeout(Duration.ofSeconds(3)).toMono().awaitSingle()
             if(subscription == "error") RpcServiceResult("error", error) else RpcServiceResult("success", subscription)
