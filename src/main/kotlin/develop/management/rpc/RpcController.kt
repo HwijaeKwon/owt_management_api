@@ -24,7 +24,7 @@ import java.util.function.Supplier
 import kotlin.collections.HashMap
 import kotlin.random.Random
 
-@Profile("dev")
+@Profile("test")
 @Component
 class RpcController(private val environment: Environment) {
     private final val logger = LoggerFactory.getLogger(this.javaClass.name)
