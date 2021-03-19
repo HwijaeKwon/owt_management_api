@@ -7,6 +7,10 @@ import develop.management.repository.KeyRepository
 import develop.management.repository.ServiceRepository
 import develop.management.util.cipher.Cipher
 import kotlinx.coroutines.runBlocking
+import org.springframework.beans.PropertyValue
+import org.springframework.boot.ApplicationArguments
+import org.springframework.boot.ApplicationRunner
+import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.stereotype.Component
 import org.springframework.util.DefaultPropertiesPersister
 import java.io.File
@@ -20,15 +24,19 @@ import javax.annotation.PostConstruct
  * management api 초기 세팅을 수행하는 클래스
  */
 @Component
-class ManagementInitializer(private val serviceRepository: ServiceRepository, private val keyRepository: KeyRepository) {
+class ManagementInitializer(private val serviceRepository: ServiceRepository,
+                            private val keyRepository: KeyRepository) : ApplicationRunner {
 
-    private val superServicePath = "src/main/resources/superService.info"
+    private val superServicePath = "superService.info"
 
     private val superServiceName: String = "superService"
     private var superServiceId: String = ""
     private var superServiceKey: String = ""
 
-    @PostConstruct
+    override fun run(args: ApplicationArguments?) {
+        init()
+    }
+
     fun init() {
         runBlocking {
             serviceRepository.findByName(superServiceName).firstOrNull()?.also {

@@ -23,9 +23,8 @@ import org.springframework.data.mongodb.core.SimpleReactiveMongoDatabaseFactory
 @TestConfiguration
 class TestReactiveMongoConfig(private val environment: Environment) {
 
-    private val uri = environment.getProperty("spring.data.mongodb.uri", "mongodb://localhost:12345")
-    private val ip = environment.getProperty("spring.data.mongodb.ip", String::class.java, "localhost")
-    private val port = environment.getProperty("spring.data.mongodb.port", Int::class.java,12345)
+    private val host = environment.getProperty("spring.data.mongodb.host", "localhost")
+    private val port = environment.getProperty("spring.data.mongodb.port", Int::class.java, 27017)
     private val databaseName = environment.getProperty("spring.data.mongodb.database", "test")
 
     @Bean(initMethod = "start", destroyMethod = "stop")
@@ -34,7 +33,7 @@ class TestReactiveMongoConfig(private val environment: Environment) {
 
         val mongodConfig = MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
-            .net(Net(ip, port, false))
+            .net(Net(host, port, false))
             .build()
 
         return starter.prepare(mongodConfig)
@@ -42,7 +41,7 @@ class TestReactiveMongoConfig(private val environment: Environment) {
 
     @Bean(destroyMethod = "close")
     fun reactiveMongoClient(): MongoClient {
-        val connectionString = ConnectionString(uri)
+        val connectionString = ConnectionString("mongodb://$host:$port/$databaseName")
         val settings = MongoClientSettings.builder()
             .applyConnectionString(connectionString)
             .build()
@@ -66,9 +65,7 @@ class TestReactiveMongoConfig(private val environment: Environment) {
 
     @Bean
     fun reactiveMongoTemplate(reactiveMongoClient: MongoClient): ReactiveMongoTemplate {
-        return ReactiveMongoTemplate(reactiveMongoClient, databaseName).also {
-            it.setSessionSynchronization(SessionSynchronization.ALWAYS)
-        }
+        return ReactiveMongoTemplate(reactiveMongoClient, databaseName)
     }
 
     @Bean

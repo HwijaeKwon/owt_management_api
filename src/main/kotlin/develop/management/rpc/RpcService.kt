@@ -7,16 +7,16 @@ import develop.management.domain.dto.*
 import kotlinx.coroutines.reactive.awaitSingle
 import org.json.JSONArray
 import org.json.JSONObject
+import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
 import reactor.kotlin.core.publisher.toMono
 import java.time.Duration
 import java.util.concurrent.TimeoutException
 
 @Service
-class RpcService(private val rpcController: RpcController) {
+class RpcService(private val rpcController: RpcController, private val environment: Environment) {
 
-    //Todo: clusterName을 config에서 읽어와야 한다
-    private val clusterName = "owt-cluster"
+    private val clusterName = environment.getProperty("cluster.name", "owt-cluster")
 
     suspend fun schedulePortal(tokenCode: String, origin: Token.Origin): RpcServiceResult {
         val args = JSONArray()

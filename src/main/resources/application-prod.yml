@@ -1,13 +1,13 @@
 spring:
   config:
     activate:
-      on-profile: dev
+      on-profile: prod
   data:
     mongodb:
-      uri: mongodb://192.168.9.14:12345/owtdb
-      database: owtdb
-      username: test
-      password: test1234
+      uri: mongodb://${DATABASE_URL:localhost/owtdb}
+      database: ${DATABASE_NAME:owtdb}
+      username: ${DATABASE_USERNAME:guest}
+      password: ${DATABASE_PASSWORD:guest}
   cloud:
     function:
         definition: tx;rx
@@ -35,25 +35,25 @@ spring:
               routing-key-expression: headers['routingKey']
 
   rabbitmq:
-    host: 192.168.9.14
-    port: 54321
-    username: test
-    password: test1234
+    host: ${AMQP_HOST:localhost}
+    port: ${AMQP_PORT:5672}
+    username: ${AMQP_USERNAME:guest}
+    password: ${AMQP_PASSWORD:guest}
 
 server:
-  address: 192.168.9.13
-  port: 8080
+  address: ${INTERNAL_IP:localhost}
+  port: ${PORT:8080}
 
 #mongodb retry
 mongodb:
   transaction:
-    enable: false
+    enable: ${TRANSACTION_ENABLE:false}
   retry:
-    times: 5
-    initialDelay: 100
-    maxDelay: 1000
+    times: ${MONGODB_RETRY_TIMES:5}
+    initialDelay: ${MONGODB_RETRY_INITIALDELAY:100}
+    maxDelay: ${MONGODB_RETRY_MAXDELAY:1000}
 
 logging:
   level:
-    org.springframework: INFO
-    org.springframework.web: DEBUG
+    org.springframework: ${LOG_LEVEL:INFO}
+    org.springframework.web: ${WEB_LOG_LEVEL:DEBUG}

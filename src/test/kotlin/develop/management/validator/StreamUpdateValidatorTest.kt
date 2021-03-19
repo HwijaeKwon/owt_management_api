@@ -101,7 +101,7 @@ internal class StreamUpdateValidatorTest {
         val result = WebTestClient
             .bindToRouterFunction(router())
             .build()
-            .post()
+            .patch()
             .uri("/streams")
             .bodyValue(request)
             .exchange()
@@ -133,7 +133,7 @@ internal class StreamUpdateValidatorTest {
         val result = WebTestClient
             .bindToRouterFunction(router())
             .build()
-            .post()
+            .patch()
             .uri("/streams")
             .bodyValue(request)
             .exchange()
@@ -165,7 +165,7 @@ internal class StreamUpdateValidatorTest {
         val result = WebTestClient
             .bindToRouterFunction(router())
             .build()
-            .post()
+            .patch()
             .uri("/streams")
             .bodyValue(request)
             .exchange()
@@ -196,7 +196,7 @@ internal class StreamUpdateValidatorTest {
         val result = WebTestClient
             .bindToRouterFunction(router())
             .build()
-            .post()
+            .patch()
             .uri("/streams")
             .bodyValue(streamUpdate)
             .exchange()

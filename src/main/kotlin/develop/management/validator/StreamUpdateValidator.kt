@@ -14,6 +14,9 @@ class StreamUpdateValidator : Validator {
 
         val streamUpdate: StreamUpdate = target as StreamUpdate
 
-        if(streamUpdate.op.isBlank()) errors.rejectValue("op", "field.empty", "The op must not be empty.")
+        if(streamUpdate.op != "replace"
+            && streamUpdate.op != "add"
+            && streamUpdate.op != "remove")
+                errors.rejectValue("op", "field.empty", "Invalid op.")
     }
 }

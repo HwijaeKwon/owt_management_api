@@ -4,7 +4,6 @@ spring:
       on-profile: test
   data:
     mongodb:
-      uri: mongodb://localhost:27027
       host: localhost
       port: 27027
       database: test
@@ -42,6 +41,8 @@ spring:
 
 #mongodb retry
 mongodb:
+  transaction:
+    enable: false
   retry:
     times: 5
     initialDelay: 100
