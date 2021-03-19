@@ -14,6 +14,9 @@ import org.springframework.stereotype.Service
  */
 @Service
 class ParticipantService(private val rpcService: RpcService) {
+
+    private final val gson = Gson()
+
     /**
      * Conference에서 사용자를 조회한다
      */
@@ -27,7 +30,7 @@ class ParticipantService(private val rpcService: RpcService) {
         val participantArray = mutableListOf<JSONObject>()
         try {
             var i = 0
-            while (true) {
+            while (i < jsonArray.length()) {
                 participantArray.add(jsonArray.getJSONObject(i))
                 i++
             }
@@ -35,7 +38,7 @@ class ParticipantService(private val rpcService: RpcService) {
             //
         }
         return participantArray.firstOrNull { it.getString("id") == participantId }?.let {
-            Gson().fromJson(it.toString(), ParticipantDetail::class.java)
+            gson.fromJson(it.toString(), ParticipantDetail::class.java)
         }?: throw IllegalArgumentException("Participant not found")
     }
 
@@ -50,14 +53,14 @@ class ParticipantService(private val rpcService: RpcService) {
         val participantArray = mutableListOf<JSONObject>()
         try {
             var i = 0
-            while (true) {
+            while (i < jsonArray.length()) {
                 participantArray.add(jsonArray.getJSONObject(i))
                 i++
             }
         } catch (e: JSONException) {
             //
         }
-        return participantArray.map { jsonObject -> Gson().fromJson(jsonObject.toString(), ParticipantDetail::class.java) }
+        return participantArray.map { jsonObject -> gson.fromJson(jsonObject.toString(), ParticipantDetail::class.java) }
     }
 
     /**
@@ -67,7 +70,7 @@ class ParticipantService(private val rpcService: RpcService) {
         val (status, result) = rpcService.updateParticipant(roomId, participantId, permissionUpdates)
         if(status == "error") throw IllegalStateException("Update participant fail. $result")
 
-        return Gson().fromJson(result, ParticipantDetail::class.java)
+        return gson.fromJson(result, ParticipantDetail::class.java)
     }
 
     /**

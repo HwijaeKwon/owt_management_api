@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service
 @Service
 class SipCallService(private val rpcService: RpcService) {
 
+    private final val gson = Gson()
+
     /**
      * 새로운 sipcall을 생성한다
      */
@@ -22,7 +24,7 @@ class SipCallService(private val rpcService: RpcService) {
         val (status, result) = rpcService.addSipCall(roomId, sipCallRequest)
         if(status == "error") throw IllegalStateException("Add sipcall fail. $result")
 
-        return Gson().fromJson(result, SipCall::class.java)
+        return gson.fromJson(result, SipCall::class.java)
     }
 
     /**
@@ -36,14 +38,14 @@ class SipCallService(private val rpcService: RpcService) {
         val sipcallList = mutableListOf<JSONObject>()
         try {
             var i = 0
-            while (true) {
+            while (i < jsonArray.length()) {
                 sipcallList.add(jsonArray.getJSONObject(i))
                 i++
             }
         } catch (e: JSONException) {
             //
         }
-        return sipcallList.map { jsonObject -> Gson().fromJson(jsonObject.toString(), SipCall::class.java) }
+        return sipcallList.map { jsonObject -> gson.fromJson(jsonObject.toString(), SipCall::class.java) }
     }
 
     /**
@@ -53,7 +55,7 @@ class SipCallService(private val rpcService: RpcService) {
         val (status, result) = rpcService.updateSipCall(roomId, sipCallId, cmds)
         if(status == "error") throw IllegalStateException("Update sipcall fail. $result")
 
-        return Gson().fromJson(result, SipCall::class.java)
+        return gson.fromJson(result, SipCall::class.java)
     }
 
     /**

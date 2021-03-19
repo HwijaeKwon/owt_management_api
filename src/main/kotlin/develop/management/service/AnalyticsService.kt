@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service
 class AnalyticsService(private val rpcService: RpcService) {
     private final val logger = LoggerFactory.getLogger(this.javaClass.name)
 
+    private final val gson = Gson()
+
     /**
      * 새로운 analytics를 생성한다
      */
@@ -25,10 +27,13 @@ class AnalyticsService(private val rpcService: RpcService) {
         subDesc.connection.algorithm = analyticsRequest.algorithm
         subDesc.media = analyticsRequest.media
 
-        val (status, result) = rpcService.addServerSideSubscription(roomId, JSONObject(Gson().toJson(subDesc)).toString())
-        if(status == "error") throw IllegalStateException("Add analytics fail. $result")
+        val (status, result) = rpcService.addServerSideSubscription(
+            roomId,
+            JSONObject(gson.toJson(subDesc)).toString()
+        )
+        if (status == "error") throw IllegalStateException("Add analytics fail. $result")
 
-        return Gson().fromJson(result, Analytics::class.java)
+        return gson.fromJson(result, Analytics::class.java)
     }
 
     /**
@@ -36,20 +41,20 @@ class AnalyticsService(private val rpcService: RpcService) {
      */
     suspend fun findAll(roomId: String): List<Analytics> {
         val (status, result) = rpcService.getSubscriptionsInRoom(roomId, "analytics")
-        if(status == "error") throw IllegalStateException("Find all analytics fail. $result")
+        if (status == "error") throw IllegalStateException("Find all analytics fail. $result")
 
         val jsonArray = JSONArray(result)
         val analyticsList = mutableListOf<JSONObject>()
         try {
             var i = 0
-            while (true) {
+            while (i < jsonArray.length()) {
                 analyticsList.add(jsonArray.getJSONObject(i))
                 i++
             }
         } catch (e: JSONException) {
             //
         }
-        return analyticsList.map { jsonObject -> Gson().fromJson(jsonObject.toString(), Analytics::class.java) }
+        return analyticsList.map { jsonObject -> gson.fromJson(jsonObject.toString(), Analytics::class.java) }
     }
 
     /**
@@ -57,6 +62,6 @@ class AnalyticsService(private val rpcService: RpcService) {
      */
     suspend fun delete(roomId: String, analyticsId: String) {
         val (status, result) = rpcService.deleteSubscription(roomId, analyticsId, "analytics")
-        if(status == "error") throw IllegalStateException("Delete analytics fail. $result")
+        if (status == "error") throw IllegalStateException("Delete analytics fail. $result")
     }
 }

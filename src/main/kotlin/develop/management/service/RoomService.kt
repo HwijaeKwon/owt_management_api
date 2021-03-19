@@ -24,6 +24,8 @@ class RoomService(private val serviceRepository: ServiceRepository,
                   private val rpcService: RpcService
 ) {
 
+    private final val gson = Gson()
+
     /**
      * audio만 있는 view의 label을 반환한다
      */
@@ -49,7 +51,7 @@ class RoomService(private val serviceRepository: ServiceRepository,
 
     private fun convertToViewVideo(viewVideo: Any): ViewVideo {
         if(viewVideo !is ViewVideo) {
-            return Gson().fromJson(viewVideo.toString(), ViewVideo::class.java)
+            return gson.fromJson(viewVideo.toString(), ViewVideo::class.java)
         }
         return viewVideo
     }

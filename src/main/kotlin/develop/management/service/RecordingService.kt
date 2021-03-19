@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service
 @Service
 class RecordingService(private val rpcService: RpcService) {
 
+    private final val gson = Gson()
+
     /**
      * 새로운 recordings를 생성한다
      */
@@ -23,10 +25,10 @@ class RecordingService(private val rpcService: RpcService) {
         subReq.connection.container = recordingRequest.container
         subReq.media = recordingRequest.media
 
-        val (status, result) = rpcService.addServerSideSubscription(roomId, JSONObject(Gson().toJson(subReq)).toString())
+        val (status, result) = rpcService.addServerSideSubscription(roomId, JSONObject(gson.toJson(subReq)).toString())
         if(status == "error") throw IllegalStateException("Add recording fail. $result")
 
-        return Gson().fromJson(result, Recordings::class.java)
+        return gson.fromJson(result, Recordings::class.java)
     }
 
     /**
@@ -40,14 +42,14 @@ class RecordingService(private val rpcService: RpcService) {
         val recordingsList = mutableListOf<JSONObject>()
         try {
             var i = 0
-            while (true) {
+            while (i < jsonArray.length()) {
                 recordingsList.add(jsonArray.getJSONObject(i))
                 i++
             }
         } catch (e: JSONException) {
             //
         }
-        return recordingsList.map { jsonObject -> Gson().fromJson(jsonObject.toString(), Recordings::class.java) }
+        return recordingsList.map { jsonObject -> gson.fromJson(jsonObject.toString(), Recordings::class.java) }
     }
 
     /**
@@ -57,7 +59,7 @@ class RecordingService(private val rpcService: RpcService) {
         val (status, result) = rpcService.controlSubscription(roomId, recordingsId, cmds)
         if(status == "error") throw IllegalStateException("Update recording fail. $result")
 
-        return Gson().fromJson(result, Recordings::class.java)
+        return gson.fromJson(result, Recordings::class.java)
     }
 
     /**

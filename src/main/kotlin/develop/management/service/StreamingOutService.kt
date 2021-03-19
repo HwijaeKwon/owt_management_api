@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service
 @Service
 class StreamingOutService(private val rpcService: RpcService) {
 
+    private final val gson = Gson()
+
     private fun guessProtocol(url: String): String {
         return if(url.startsWith("rtmp://")) {
             "rtmp"
@@ -46,10 +48,10 @@ class StreamingOutService(private val rpcService: RpcService) {
             subReq.connection.parameters = streamingOutRequest.parameters?: DashParameters("PUT", 2, 5)
         }
 
-        val (status, result) = rpcService.addServerSideSubscription(roomId, JSONObject(Gson().toJson(subReq)).toString())
+        val (status, result) = rpcService.addServerSideSubscription(roomId, JSONObject(gson.toJson(subReq)).toString())
         if(status == "error") throw IllegalStateException("Add streaming out fail. $result")
 
-        return Gson().fromJson(result, StreamingOut::class.java)
+        return gson.fromJson(result, StreamingOut::class.java)
     }
 
     /**
@@ -63,14 +65,14 @@ class StreamingOutService(private val rpcService: RpcService) {
         val streamingOutList = mutableListOf<JSONObject>()
         try {
             var i = 0
-            while (true) {
+            while (i < jsonArray.length()) {
                 streamingOutList.add(jsonArray.getJSONObject(i))
                 i++
             }
         } catch (e: JSONException) {
             //
         }
-        return streamingOutList.map { jsonObject -> Gson().fromJson(jsonObject.toString(), StreamingOut::class.java) }
+        return streamingOutList.map { jsonObject -> gson.fromJson(jsonObject.toString(), StreamingOut::class.java) }
     }
 
     /**
@@ -80,7 +82,7 @@ class StreamingOutService(private val rpcService: RpcService) {
         val (status, result) = rpcService.controlSubscription(roomId, streamingOutId, cmds)
         if(status == "error") throw IllegalStateException("Update streaming out fail. $result")
 
-        return Gson().fromJson(result, StreamingOut::class.java)
+        return gson.fromJson(result, StreamingOut::class.java)
     }
 
     /**

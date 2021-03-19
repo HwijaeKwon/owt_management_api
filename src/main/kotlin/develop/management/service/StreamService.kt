@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service
 @Service
 class StreamService(private val rpcService: RpcService) {
 
+    private final val gson = Gson()
+
     /**
      * v1.1 stream을 v1 stream으로 전환하는 함수
      */
@@ -44,7 +46,7 @@ class StreamService(private val rpcService: RpcService) {
         val streamArray = mutableListOf<JSONObject>()
         try {
             var i = 0
-            while (true) {
+            while (i < jsonArray.length()) {
                 streamArray.add(jsonArray.getJSONObject(i))
                 i++
             }
@@ -53,7 +55,7 @@ class StreamService(private val rpcService: RpcService) {
         }
 
         return streamArray.firstOrNull { it.getString("id") == streamId }?.let {
-            Gson().fromJson(it.toString(), StreamInfo::class.java)
+            gson.fromJson(it.toString(), StreamInfo::class.java)
         }?: throw IllegalArgumentException("Stream not found")
     }
 
@@ -67,7 +69,7 @@ class StreamService(private val rpcService: RpcService) {
         val streamArray = mutableListOf<JSONObject>()
         try {
             var i = 0
-            while (true) {
+            while (i < jsonArray.length()) {
                 streamArray.add(jsonArray.getJSONObject(i))
                 i++
             }
@@ -75,7 +77,7 @@ class StreamService(private val rpcService: RpcService) {
             //
         }
         return streamArray.map { jsonObject -> convertToV1Stream(jsonObject.toString()) }
-                .map { streamString -> Gson().fromJson(streamString, StreamInfo::class.java) }
+                .map { streamString -> gson.fromJson(streamString, StreamInfo::class.java) }
     }
 
     /**
@@ -88,7 +90,7 @@ class StreamService(private val rpcService: RpcService) {
         if(status == "error") throw IllegalStateException("Control stream fail. $result")
 
         val stream = convertToV1Stream(result)
-        return Gson().fromJson(stream, StreamInfo::class.java)
+        return gson.fromJson(stream, StreamInfo::class.java)
     }
 
     /**
@@ -107,6 +109,6 @@ class StreamService(private val rpcService: RpcService) {
         if(status == "error") throw IllegalStateException("Add streamingin fail. $result")
 
         val stream = convertToV1Stream(result)
-        return Gson().fromJson(stream, StreamInfo::class.java)
+        return gson.fromJson(stream, StreamInfo::class.java)
     }
 }
