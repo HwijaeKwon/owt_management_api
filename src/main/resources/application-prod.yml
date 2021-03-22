@@ -19,14 +19,14 @@ spring:
         rx-in-0:
           binder: rabbit
           destination: owtRpc
-          group: management
+          group: management-${QUEUE_NAME:queue}
       rabbit:
         bindings:
           rx-in-0:
             consumer:
               exchange-type: direct
               #management api가 scalable하려면 중복되지 않는 값을 사용해야 한다
-              binding-routing-key: 'management'
+              binding-routing-key: ${BINDING_ROUTING_KEY:management}
           tx-out-0:
             producer:
               exchangeDurable: false

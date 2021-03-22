@@ -21,15 +21,17 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.locks.LockSupport
 import java.util.function.Consumer
 import java.util.function.Supplier
+import javax.annotation.PostConstruct
 import kotlin.collections.HashMap
 import kotlin.random.Random
 
-@Profile("test")
 @Component
 class RpcController(private val environment: Environment) {
     private final val logger = LoggerFactory.getLogger(this.javaClass.name)
 
-    private val bindingRoutingKey = environment.getProperty("spring.cloud.stream.rabbit.bindings.rx-in-0.consumer.binding-routing-key", "management")
+    private val queueName = UUID.randomUUID()
+
+    private val bindingRoutingKey = UUID.randomUUID()
 
     // maximum corrID
     private val maxCorrID = environment.getProperty("rpc.maxCorrID", Long::class.java, 10000)
@@ -39,6 +41,12 @@ class RpcController(private val environment: Environment) {
 
     // 메세지 전송 시 사용하는 sink
     private val sendProcessor = Sinks.many().unicast().onBackpressureBuffer<Message<String>>()
+
+    @PostConstruct
+    fun init() {
+        System.setProperty("QUEUE_NAME", queueName.toString())
+        System.setProperty("BINDING_ROUTING_KEY", bindingRoutingKey.toString())
+    }
 
     fun deleteCorrID(corrID: Long) {
         processorMap.remove(corrID)
