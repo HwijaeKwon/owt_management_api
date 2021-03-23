@@ -14,7 +14,7 @@ import org.springframework.data.mongodb.SessionSynchronization
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.transaction.reactive.TransactionalOperator
 
-@Profile(value = ["dev", "prod"])
+@Profile(value = ["dev", "prod", "test"])
 @Configuration
 class ReactiveMongoConfig(private val environment: Environment) {
 

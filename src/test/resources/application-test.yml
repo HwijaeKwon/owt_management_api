@@ -4,9 +4,10 @@ spring:
       on-profile: test
   data:
     mongodb:
-      host: localhost
-      port: 27027
-      database: test
+      uri: mongodb://192.168.9.14:12345/owtdb
+      database: owtdb
+      username: test
+      password: test1234
 
   cloud:
     function:

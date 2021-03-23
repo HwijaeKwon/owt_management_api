@@ -9,7 +9,6 @@ import develop.management.domain.dto.ServiceConfig
 import develop.management.repository.KeyRepository
 import develop.management.repository.RoomRepository
 import develop.management.repository.ServiceRepository
-import develop.management.repository.mongo.TestReactiveMongoConfig
 import develop.management.util.cipher.Cipher
 import develop.management.util.error.ErrorBody
 import kotlinx.coroutines.runBlocking
@@ -37,8 +36,6 @@ import java.util.*
  */
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
-@Import(TestReactiveMongoConfig::class)
 class ServiceIntegrationTest {
 
     @Autowired

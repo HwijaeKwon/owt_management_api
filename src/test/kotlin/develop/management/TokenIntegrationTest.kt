@@ -3,7 +3,6 @@ package develop.management
 import com.google.gson.GsonBuilder
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.whenever
-import de.flapdoodle.embed.mongo.MongodExecutable
 import develop.management.domain.document.Key
 import develop.management.domain.document.Room
 import develop.management.domain.document.Service
@@ -15,7 +14,6 @@ import develop.management.repository.KeyRepository
 import develop.management.repository.RoomRepository
 import develop.management.repository.ServiceRepository
 import develop.management.repository.TokenRepository
-import develop.management.repository.mongo.TestReactiveMongoConfig
 import develop.management.rpc.RpcService
 import develop.management.rpc.RpcServiceResult
 import develop.management.util.cipher.Cipher
@@ -45,8 +43,6 @@ import java.util.*
  */
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
-@Import(TestReactiveMongoConfig::class)
 class TokenIntegrationTest {
 
     @Autowired

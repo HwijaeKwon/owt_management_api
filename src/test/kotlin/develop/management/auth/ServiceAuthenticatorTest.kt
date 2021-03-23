@@ -4,7 +4,6 @@ import com.google.gson.GsonBuilder
 import develop.management.domain.document.Service
 import develop.management.domain.dto.ServiceConfig
 import develop.management.repository.ServiceRepository
-import develop.management.repository.mongo.TestReactiveMongoConfig
 import develop.management.util.cipher.Cipher
 import develop.management.util.error.ErrorBody
 import kotlinx.coroutines.runBlocking
@@ -29,8 +28,6 @@ import java.util.*
 
 @ActiveProfiles("test")
 @SpringBootTest
-@EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
-@Import(TestReactiveMongoConfig::class)
 internal class ServiceAuthenticatorTest {
 
     @Autowired

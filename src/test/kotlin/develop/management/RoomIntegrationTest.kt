@@ -12,7 +12,6 @@ import develop.management.domain.enum.Video
 import develop.management.repository.KeyRepository
 import develop.management.repository.RoomRepository
 import develop.management.repository.ServiceRepository
-import develop.management.repository.mongo.TestReactiveMongoConfig
 import develop.management.rpc.RpcService
 import develop.management.rpc.RpcServiceResult
 import develop.management.util.cipher.Cipher
@@ -41,8 +40,6 @@ import java.util.*
  */
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
-@Import(TestReactiveMongoConfig::class)
 class RoomIntegrationTest {
     @Autowired
     private lateinit var roomRepository: RoomRepository

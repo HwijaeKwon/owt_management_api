@@ -1,4 +1,4 @@
-package develop.management.service
+package develop.management.service.repo
 
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.eq
@@ -11,6 +11,7 @@ import develop.management.domain.dto.TokenConfig
 import develop.management.repository.mongo.*
 import develop.management.rpc.RpcService
 import develop.management.rpc.RpcServiceResult
+import develop.management.service.TokenService
 import develop.management.util.cipher.Cipher
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
@@ -34,9 +35,7 @@ import java.util.*
  */
 
 @ActiveProfiles("test")
-@SpringBootTest(classes = [MongoTokenRepository::class, MongoRoomRepository::class, MongoKeyRepository::class, TokenService::class, RpcService::class])
-@EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
-@Import(TestReactiveMongoConfig::class)
+@SpringBootTest
 internal class TokenServiceTest {
 
     @Autowired

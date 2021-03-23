@@ -1,7 +1,6 @@
 package develop.management.validator
 
 import com.google.gson.GsonBuilder
-import develop.management.ManagementInitializer
 import develop.management.auth.ServiceAuthenticator.AuthData
 import develop.management.domain.document.Room
 import develop.management.domain.document.Service
@@ -9,7 +8,6 @@ import develop.management.domain.dto.CreateOptions
 import develop.management.domain.dto.RoomConfig
 import develop.management.domain.dto.ServiceConfig
 import develop.management.repository.mongo.MongoRoomRepository
-import develop.management.repository.mongo.TestReactiveMongoConfig
 import develop.management.util.cipher.Cipher
 import develop.management.util.error.ErrorBody
 import kotlinx.coroutines.runBlocking
@@ -22,6 +20,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.web.reactive.function.server.RouterFunction
@@ -33,8 +32,8 @@ import org.springframework.web.reactive.function.server.coRouter
  * Room Validation 테스트 클래스
  * Server 전체를 bind하지 않고 router function만 bind한다
  */
-@SpringBootTest(classes = [TestReactiveMongoConfig::class, MongoRoomRepository::class, RoomValidator::class])
-@EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
+@ActiveProfiles("test")
+@SpringBootTest
 internal class RoomValidatorTest {
 
     @MockBean

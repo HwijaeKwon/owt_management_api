@@ -1,4 +1,4 @@
-package develop.management.service
+package develop.management.service.repo
 
 import com.google.gson.GsonBuilder
 import develop.management.domain.document.Room
@@ -6,11 +6,9 @@ import develop.management.domain.document.Service
 import develop.management.domain.dto.CreateOptions
 import develop.management.domain.dto.RoomConfig
 import develop.management.domain.dto.ServiceConfig
-import develop.management.repository.RoomRepository
-import develop.management.repository.ServiceRepository
 import develop.management.repository.mongo.MongoRoomRepository
 import develop.management.repository.mongo.MongoServiceRepository
-import develop.management.repository.mongo.TestReactiveMongoConfig
+import develop.management.service.ServiceService
 import develop.management.util.cipher.Cipher
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
@@ -18,12 +16,8 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.ContextConfiguration
 
 /**
  * ServiceData Service 테스트 클래스
@@ -32,9 +26,7 @@ import org.springframework.test.context.ContextConfiguration
  */
 
 @ActiveProfiles("test")
-@SpringBootTest(classes = [MongoServiceRepository::class, MongoRoomRepository::class, ServiceService::class])
-@EnableAutoConfiguration(exclude = [MongoAutoConfiguration::class])
-@Import(TestReactiveMongoConfig::class)
+@SpringBootTest
 internal class ServiceServiceTest {
 
     @Autowired
