@@ -37,6 +37,9 @@ dependencies {
 	implementation("org.springframework.cloud:spring-cloud-starter-stream-rabbit")
 	// spring cloud stream
 	implementation("org.springframework.cloud:spring-cloud-stream")
+	//logback
+	implementation("ch.qos.logback:logback-core")
+	implementation("org.slf4j:slf4j-api")
 
 	testImplementation("org.springframework.cloud:spring-cloud-stream-test-support")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

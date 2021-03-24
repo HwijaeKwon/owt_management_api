@@ -27,7 +27,7 @@ import javax.annotation.PostConstruct
 class ManagementInitializer(private val serviceRepository: ServiceRepository,
                             private val keyRepository: KeyRepository) : ApplicationRunner {
 
-    private val superServicePath = "superService.info"
+    private val superServicePath = "superService/superService.info"
 
     private val superServiceName: String = "superService"
     private var superServiceId: String = ""

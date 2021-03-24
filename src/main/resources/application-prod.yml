@@ -57,3 +57,5 @@ logging:
   level:
     org.springframework: ${LOG_LEVEL:INFO}
     org.springframework.web: ${WEB_LOG_LEVEL:DEBUG}
+  file:
+    name: logs/log_prod.log

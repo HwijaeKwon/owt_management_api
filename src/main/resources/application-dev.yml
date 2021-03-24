@@ -57,3 +57,5 @@ logging:
   level:
     org.springframework: INFO
     org.springframework.web: DEBUG
+  file:
+    name: logs/log_dev.log
