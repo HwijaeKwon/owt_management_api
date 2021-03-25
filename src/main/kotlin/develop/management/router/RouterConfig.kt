@@ -2,18 +2,28 @@ package develop.management.router
 
 import develop.management.auth.ServiceAuthenticator
 import develop.management.auth.ServiceAuthorizer
+import develop.management.domain.dto.RoomConfig
+import develop.management.domain.dto.ServiceInfo
 import develop.management.handler.*
+import develop.management.util.error.AppError
+import develop.management.util.error.BadRequestError
+import develop.management.util.error.ErrorFoam
 import develop.management.validator.RoomValidator
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.ExampleObject
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springdoc.core.annotations.RouterOperation
 import org.springdoc.core.annotations.RouterOperations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType
+import org.springframework.validation.BeanPropertyBindingResult
 import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.reactive.function.server.RouterFunction
-import org.springframework.web.reactive.function.server.ServerResponse
-import org.springframework.web.reactive.function.server.coRouter
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.reactive.function.server.*
 
 @Configuration
 class RouterConfig {
@@ -53,6 +63,17 @@ class RouterConfig {
 
     @Autowired
     private lateinit var roomValidator: RoomValidator
+
+    @Bean
+    @RouterOperations(
+            RouterOperation(path = "*", method = [RequestMethod.OPTIONS],
+                    operation = Operation(responses = [ApiResponse(responseCode = "200", description = "Success")]))
+    )
+    fun defaultRouter(): RouterFunction<ServerResponse> = coRouter {
+        OPTIONS("*") {
+            ServerResponse.ok().bodyValueAndAwait("")
+        }
+    }
 
     /**
      * service 관련 요청을 처리하는 router functions

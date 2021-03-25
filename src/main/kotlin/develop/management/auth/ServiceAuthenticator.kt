@@ -85,8 +85,7 @@ class ServiceAuthenticator(private val serviceRepository: ServiceRepository) {
         //Todo: 디버깅 중
         logger.debug("Created signature : $signature")
         logger.debug("Received signature : " + data["signature"])
-        //return (signature == data["signature"])
-        return true
+        return (signature == data["signature"])
     }
 
     /**
